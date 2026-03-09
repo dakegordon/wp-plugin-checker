@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WP Plugin Checker</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-logo">
+        <img src="icons/icon32.png" alt="" class="header-icon" onerror="this.style.display='none'" />
+        <span class="header-title">WP Plugin Checker</span>
+      </div>
+      <span class="header-subtitle">WPForms & Mail SMTP</span>
+    </header>
+
+    <!-- Domain Input Section -->
+    <section class="domain-section">
+      <label for="domain-input" class="label">Domain to check</label>
+      <div class="input-row">
+        <input
+          type="text"
+          id="domain-input"
+          class="input"
+          placeholder="https://example.com"
+          spellcheck="false"
+          autocomplete="off"
+        />
+        <button id="check-btn" class="btn btn-primary">Check</button>
+      </div>
+      <p class="hint" id="current-tab-hint"></p>
+    </section>
+
+    <!-- Loading State -->
+    <section id="loading-section" class="status-section hidden">
+      <div class="spinner"></div>
+      <p class="status-text">Checking plugin files...</p>
+    </section>
+
+    <!-- Error State -->
+    <section id="error-section" class="status-section hidden">
+      <p class="error-icon">✗</p>
+      <p class="error-title">Check Failed</p>
+      <p class="error-message" id="error-message"></p>
+    </section>
+
+    <!-- Results Section -->
+    <section id="results-section" class="results hidden">
+
+      <!-- WP Mail SMTP group -->
+      <p class="section-header">WP Mail SMTP</p>
+
+      <div class="result-row">
+        <div class="result-label">
+          <span class="plugin-badge badge-pro">PRO</span>
+          <span class="plugin-name">WP Mail SMTP Pro</span>
+        </div>
+        <div class="result-status" id="pro-status"></div>
+      </div>
+
+      <div class="result-divider"></div>
+
+      <div class="result-row">
+        <div class="result-label">
+          <span class="plugin-badge badge-lite">LITE</span>
+          <span class="plugin-name">WP Mail SMTP</span>
+        </div>
+        <div class="result-status" id="lite-status"></div>
+      </div>
+
+      <!-- WPForms group -->
+      <p class="section-header">WPForms</p>
+
+      <div class="result-row">
+        <div class="result-label">
+          <span class="plugin-badge badge-pro">PRO</span>
+          <span class="plugin-name">WPForms</span>
+        </div>
+        <div class="result-status" id="wpforms-pro-status"></div>
+      </div>
+
+      <div class="result-divider"></div>
+
+      <div class="result-row">
+        <div class="result-label">
+          <span class="plugin-badge badge-lite">LITE</span>
+          <span class="plugin-name">WPForms Lite</span>
+        </div>
+        <div class="result-status" id="wpforms-lite-status"></div>
+      </div>
+
+      <p class="checked-domain" id="checked-domain-label"></p>
+    </section>
+
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

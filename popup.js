@@ -9,10 +9,14 @@ const WPFORMS_PRO_PATH  = '/wp-content/plugins/wpforms/CHANGELOG.md';
 const WPFORMS_LITE_PATH = '/wp-content/plugins/wpforms-lite/changelog.txt';
 
 // Matches: ## [4.0.0], ## 4.0.0, = 4.0.0 =
-// Captures just the X.X.X version number
-const VERSION_REGEX = /(?:##\s*\[?|=\s*)(\d+\.\d+\.\d+)/;
+// Captures X.X.X or X.X.X.X (WPForms uses 4-segment versioning)
+const VERSION_REGEX = /(?:##\s*\[?|=\s*)(\d+\.\d+\.\d+(?:\.\d+)?)/;
 
 const FETCH_TIMEOUT_MS = 10000;
+const WPORG_TIMEOUT_MS = 5000;
+
+const WPORG_API_SMTP  = 'https://api.wordpress.org/plugins/info/1.2/?action=plugin_information&slug=wp-mail-smtp';
+const WPORG_API_FORMS = 'https://api.wordpress.org/plugins/info/1.2/?action=plugin_information&slug=wpforms-lite';
 
 // ── DOM References ─────────────────────────────────────────────────────────────
 
@@ -78,6 +82,23 @@ function parseVersion(content) {
   return match ? match[1] : null;
 }
 
+/**
+ * Compares two version strings (X.Y.Z or X.Y.Z.W).
+ * Returns -1 if a < b, 0 if equal, 1 if a > b.
+ */
+function compareVersions(a, b) {
+  const partsA = a.split('.').map(Number);
+  const partsB = b.split('.').map(Number);
+  const len = Math.max(partsA.length, partsB.length);
+  for (let i = 0; i < len; i++) {
+    const numA = partsA[i] || 0;
+    const numB = partsB[i] || 0;
+    if (numA > numB) return  1;
+    if (numA < numB) return -1;
+  }
+  return 0;
+}
+
 // ── Fetch Logic ────────────────────────────────────────────────────────────────
 
 /**
@@ -126,6 +147,37 @@ async function checkPluginUrl(url) {
   }
 }
 
+/**
+ * Fetches the latest plugin version from the WordPress.org plugins API.
+ * Returns the version string (e.g. "4.7.1") on success, or null on any failure.
+ * Never throws.
+ */
+async function fetchLatestVersionFromWpOrg(apiUrl) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), WPORG_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      signal: controller.signal,
+      credentials: 'omit',
+      cache: 'no-store',
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    const version = typeof data.version === 'string' ? data.version.trim() : null;
+    return version && /^\d+\.\d+\.\d+(?:\.\d+)?$/.test(version) ? version : null;
+
+  } catch (_) {
+    clearTimeout(timeoutId);
+    return null;
+  }
+}
+
 // ── UI State Management ────────────────────────────────────────────────────────
 
 function showLoading() {
@@ -145,29 +197,39 @@ function showError(message) {
   checkBtn.textContent = 'Check';
 }
 
-function renderStatus(el, result) {
-  if (result.found) {
-    el.innerHTML =
-      '<span class="found">&#10003; Installed</span>' +
-      (result.version
-        ? `<span class="version">v${result.version}</span>`
-        : '<span class="version-unknown">version unknown</span>');
-  } else {
+function renderStatus(el, result, latestVersion) {
+  if (!result.found) {
     el.innerHTML = '<span class="not-found">&#10007; Not Found</span>';
+    return;
   }
+
+  const versionBadge = result.version
+    ? `<span class="version">v${result.version}</span>`
+    : '<span class="version-unknown">version unknown</span>';
+
+  let updateBadge = '';
+  if (result.version && latestVersion) {
+    if (compareVersions(result.version, latestVersion) >= 0) {
+      updateBadge = '<span class="update-status up-to-date">&#10003; Up to date</span>';
+    } else {
+      updateBadge = `<span class="update-status update-available">&#8593; v${latestVersion} available</span>`;
+    }
+  }
+
+  el.innerHTML = '<span class="found">&#10003; Installed</span>' + versionBadge + updateBadge;
 }
 
-function showResults(rootDomain, smtpPro, smtpLite, formsPro, formsLite) {
+function showResults(rootDomain, smtpPro, smtpLite, formsPro, formsLite, latestSmtp, latestForms) {
   loadingSection.classList.add('hidden');
   errorSection.classList.add('hidden');
   resultsSection.classList.remove('hidden');
   checkBtn.disabled = false;
   checkBtn.textContent = 'Check Again';
 
-  renderStatus(proStatus, smtpPro);
-  renderStatus(liteStatus, smtpLite);
-  renderStatus(wpformsProStatus, formsPro);
-  renderStatus(wpformsLiteStatus, formsLite);
+  renderStatus(proStatus,         smtpPro,   latestSmtp);
+  renderStatus(liteStatus,        smtpLite,  latestSmtp);
+  renderStatus(wpformsProStatus,  formsPro,  latestForms);
+  renderStatus(wpformsLiteStatus, formsLite, latestForms);
 
   checkedDomainLabel.textContent = `Checked: ${rootDomain}`;
 
@@ -199,13 +261,15 @@ async function runCheck() {
   showLoading();
 
   try {
-    const [smtpPro, smtpLite, formsPro, formsLite] = await Promise.all([
+    const [smtpPro, smtpLite, formsPro, formsLite, latestSmtp, latestForms] = await Promise.all([
       checkPluginUrl(rootDomain + PRO_PATH),
       checkPluginUrl(rootDomain + LITE_PATH),
       checkPluginUrl(rootDomain + WPFORMS_PRO_PATH),
       checkPluginUrl(rootDomain + WPFORMS_LITE_PATH),
+      fetchLatestVersionFromWpOrg(WPORG_API_SMTP),
+      fetchLatestVersionFromWpOrg(WPORG_API_FORMS),
     ]);
-    showResults(rootDomain, smtpPro, smtpLite, formsPro, formsLite);
+    showResults(rootDomain, smtpPro, smtpLite, formsPro, formsLite, latestSmtp, latestForms);
   } catch (err) {
     showError(err.message);
   }

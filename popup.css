@@ -206,8 +206,9 @@ body {
 
 .result-status {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
 }
 
 .found {
@@ -272,6 +273,17 @@ body {
   display: none !important;
 }
 
+.install-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.update-line {
+  display: flex;
+  justify-content: flex-end;
+}
+
 /* ── Update Status ── */
 .update-status {
   font-size: 11px;
@@ -289,4 +301,10 @@ body {
 .update-available {
   color: #c2410c;
   background: #fff7ed;
+}
+
+.update-unknown {
+  color: #9ca3af;
+  background: #f9fafb;
+  font-style: italic;
 }

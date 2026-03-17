@@ -207,16 +207,22 @@ function renderStatus(el, result, latestVersion) {
     ? `<span class="version">v${result.version}</span>`
     : '<span class="version-unknown">version unknown</span>';
 
-  let updateBadge = '';
-  if (result.version && latestVersion) {
-    if (compareVersions(result.version, latestVersion) >= 0) {
-      updateBadge = '<span class="update-status up-to-date">&#10003; Up to date</span>';
+  let updateLine = '';
+  if (result.version) {
+    if (latestVersion) {
+      if (compareVersions(result.version, latestVersion) >= 0) {
+        updateLine = '<div class="update-line"><span class="update-status up-to-date">&#10003; Up to date</span></div>';
+      } else {
+        updateLine = `<div class="update-line"><span class="update-status update-available">&#8593; v${latestVersion} available</span></div>`;
+      }
     } else {
-      updateBadge = `<span class="update-status update-available">&#8593; v${latestVersion} available</span>`;
+      updateLine = '<div class="update-line"><span class="update-status update-unknown">latest version unknown</span></div>';
     }
   }
 
-  el.innerHTML = '<span class="found">&#10003; Installed</span>' + versionBadge + updateBadge;
+  el.innerHTML =
+    '<div class="install-line"><span class="found">&#10003; Installed</span>' + versionBadge + '</div>' +
+    updateLine;
 }
 
 function showResults(rootDomain, smtpPro, smtpLite, formsPro, formsLite, latestSmtp, latestForms) {

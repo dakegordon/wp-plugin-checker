@@ -308,3 +308,99 @@ body {
   background: #f9fafb;
   font-style: italic;
 }
+
+/* ── Checked Footer (domain label + mode badge) ── */
+.checked-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.checked-footer .checked-domain {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+  flex: 1;
+}
+
+.mode-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: #FF6C37;
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── CSX Competitor Section ── */
+.csx-section-header {
+  color: #c2410c;
+  border-top-color: #fed7aa;
+}
+
+.competitor-card {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.competitor-card:last-child {
+  margin-bottom: 0;
+}
+
+.competitor-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.competitor-row:last-of-type {
+  margin-bottom: 0;
+}
+
+.competitor-meta-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9a3412;
+  min-width: 46px;
+  flex-shrink: 0;
+}
+
+.competitor-plugin-names {
+  font-size: 12px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.competitor-offer-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.competitor-tag-row {
+  margin-top: 7px;
+}
+
+.csx-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'SF Mono', 'Consolas', 'Menlo', monospace;
+  color: #9a3412;
+  background: #ffedd5;
+  border: 1px solid #fed7aa;
+  padding: 2px 7px;
+  border-radius: 4px;
+}

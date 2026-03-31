@@ -5,7 +5,8 @@
   "description": "Check WordPress plugin versions and installation status.",
   "permissions": [
     "activeTab",
-    "tabs"
+    "tabs",
+    "scripting"
   ],
   "host_permissions": [
     "<all_urls>"

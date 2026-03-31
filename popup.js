@@ -2,14 +2,31 @@
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
+// WP Mail SMTP
 const PRO_PATH  = '/wp-content/plugins/wp-mail-smtp-pro/CHANGELOG.md';
 const LITE_PATH = '/wp-content/plugins/wp-mail-smtp/changelog.txt';
 
+// WPForms
 const WPFORMS_PRO_PATH  = '/wp-content/plugins/wpforms/CHANGELOG.md';
 const WPFORMS_LITE_PATH = '/wp-content/plugins/wpforms-lite/changelog.txt';
 
+// OptinMonster
+const OM_PATH = '/wp-content/plugins/optinmonster/readme.txt';
+
+// MonsterInsights
+const MI_PRO_PATH  = '/wp-content/plugins/google-analytics-premium/readme.txt';
+const MI_LITE_PATH = '/wp-content/plugins/google-analytics-for-wordpress/readme.txt';
+
+// Sugar Calendar
+const SC_PRO_PATH  = '/wp-content/plugins/sugar-calendar/readme.txt';
+const SC_LITE_PATH = '/wp-content/plugins/sugar-calendar-lite/readme.txt';
+
+// WPCharitable, AIOSEO, WPConsent
+const CHARITABLE_PATH = '/wp-content/plugins/charitable/readme.txt';
+const AIOSEO_PATH     = '/wp-content/plugins/all-in-one-seo-pack/readme.txt';
+const WPCONSENT_PATH  = '/wp-content/plugins/wpconsent/readme.txt';
+
 // Matches: ## [4.0.0], ## 4.0.0, = 4.0.0 =
-// Captures X.X.X or X.X.X.X (WPForms uses 4-segment versioning)
 const VERSION_REGEX = /(?:##\s*\[?|=\s*)(\d+\.\d+\.\d+(?:\.\d+)?)/;
 
 const FETCH_TIMEOUT_MS = 10000;
@@ -18,7 +35,6 @@ const WPORG_TIMEOUT_MS = 5000;
 const WPORG_API_SMTP  = 'https://api.wordpress.org/plugins/info/1.2/?action=plugin_information&slug=wp-mail-smtp';
 const WPORG_API_FORMS = 'https://api.wordpress.org/plugins/info/1.2/?action=plugin_information&slug=wpforms-lite';
 
-// All 31 WPForms add-on slugs. Checked when WPForms is detected.
 const WPFORMS_ADDONS = [
   'wpforms-stripe', 'wpforms-paypal-commerce', 'wpforms-square',
   'wpforms-authorize-net', 'wpforms-calculations', 'wpforms-coupons',
@@ -33,42 +49,6 @@ const WPFORMS_ADDONS = [
   'wpforms-pdf',
 ];
 
-// AM products offered via CSX — maps offer name to known plugin paths (both lite and pro).
-// Used to suppress competitor cards when the AM product is already installed.
-const AM_PRODUCTS = {
-  'WP Mail SMTP': [
-    '/wp-content/plugins/wp-mail-smtp-pro/CHANGELOG.md',
-    '/wp-content/plugins/wp-mail-smtp/changelog.txt',
-  ],
-  'WPForms': [
-    '/wp-content/plugins/wpforms/CHANGELOG.md',
-    '/wp-content/plugins/wpforms-lite/changelog.txt',
-  ],
-  'OptinMonster': [
-    '/wp-content/plugins/optinmonster/readme.txt',
-  ],
-  'MonsterInsights': [
-    '/wp-content/plugins/google-analytics-for-wordpress/readme.txt',
-    '/wp-content/plugins/google-analytics-premium/readme.txt',
-  ],
-  'Sugar Calendar': [
-    '/wp-content/plugins/sugar-calendar/readme.txt',
-    '/wp-content/plugins/sugar-calendar-lite/readme.txt',
-  ],
-  'WPCharitable': [
-    '/wp-content/plugins/charitable/readme.txt',
-  ],
-  'AIOSEO': [
-    '/wp-content/plugins/all-in-one-seo-pack/readme.txt',
-  ],
-  'WPConsent': [
-    '/wp-content/plugins/wpconsent/readme.txt',
-  ],
-};
-
-// Competitor plugins — third-party alternatives to AM products.
-// paths: array so we try multiple locations and pro/free variants.
-// When detected (and the AM product isn't already installed), show a CSX opportunity card.
 const COMPETITOR_PLUGINS = [
   // SMTP → offer WP Mail SMTP
   { name: 'FluentSMTP',   slug: 'fluent-smtp',   paths: ['/wp-content/plugins/fluent-smtp/readme.txt'],   offer: 'WP Mail SMTP' },
@@ -114,26 +94,44 @@ const COMPETITOR_PLUGINS = [
 
 // ── DOM References ─────────────────────────────────────────────────────────────
 
-const domainInput        = document.getElementById('domain-input');
-const checkBtn           = document.getElementById('check-btn');
-const currentTabHint     = document.getElementById('current-tab-hint');
-const loadingSection     = document.getElementById('loading-section');
-const loadingStatusText  = document.getElementById('loading-status-text');
-const errorSection       = document.getElementById('error-section');
-const errorMessage       = document.getElementById('error-message');
-const resultsSection     = document.getElementById('results-section');
-const notWpBanner        = document.getElementById('not-wp-banner');
-const proStatus          = document.getElementById('pro-status');
-const liteStatus         = document.getElementById('lite-status');
-const wpformsProStatus   = document.getElementById('wpforms-pro-status');
-const wpformsLiteStatus  = document.getElementById('wpforms-lite-status');
-const addonSection       = document.getElementById('addon-section');
-const addonList          = document.getElementById('addon-list');
-const smtpCsxSection     = document.getElementById('smtp-csx-section');
-const checkedDomainLabel = document.getElementById('checked-domain-label');
-const competitorSection  = document.getElementById('competitor-section');
-const competitorCards    = document.getElementById('competitor-cards');
-const modeBadge          = document.getElementById('mode-badge');
+const domainInput          = document.getElementById('domain-input');
+const publicCheckBtn       = document.getElementById('public-check-btn');
+const adminCheckBtn        = document.getElementById('admin-check-btn');
+const adminLinkRow         = document.getElementById('admin-link-row');
+const adminPluginsLink     = document.getElementById('admin-plugins-link');
+const currentTabHint       = document.getElementById('current-tab-hint');
+const loadingSection       = document.getElementById('loading-section');
+const loadingStatusText    = document.getElementById('loading-status-text');
+const errorSection         = document.getElementById('error-section');
+const errorMessage         = document.getElementById('error-message');
+const resultsSection       = document.getElementById('results-section');
+const notWpBanner          = document.getElementById('not-wp-banner');
+// WP Mail SMTP
+const proStatus            = document.getElementById('pro-status');
+const liteStatus           = document.getElementById('lite-status');
+// WPForms
+const wpformsProStatus     = document.getElementById('wpforms-pro-status');
+const wpformsLiteStatus    = document.getElementById('wpforms-lite-status');
+const wpformsLicenseRow    = document.getElementById('wpforms-license-row');
+const wpformsLicenseSelect = document.getElementById('wpforms-license-select');
+const wpformsUpsellHint    = document.getElementById('wpforms-upsell-hint');
+const addonSection         = document.getElementById('addon-section');
+const addonList            = document.getElementById('addon-list');
+const smtpCsxSection       = document.getElementById('smtp-csx-section');
+// Other AM products
+const omStatus             = document.getElementById('om-status');
+const miProStatus          = document.getElementById('mi-pro-status');
+const miLiteStatus         = document.getElementById('mi-lite-status');
+const scProStatus          = document.getElementById('sc-pro-status');
+const scLiteStatus         = document.getElementById('sc-lite-status');
+const charitableStatus     = document.getElementById('charitable-status');
+const aioseoStatus         = document.getElementById('aioseo-status');
+const wpconsentStatus      = document.getElementById('wpconsent-status');
+// Footer
+const checkedDomainLabel   = document.getElementById('checked-domain-label');
+const competitorSection    = document.getElementById('competitor-section');
+const competitorCards      = document.getElementById('competitor-cards');
+const modeBadge            = document.getElementById('mode-badge');
 
 // ── Initialization ─────────────────────────────────────────────────────────────
 
@@ -144,6 +142,7 @@ async function init() {
       const rootDomain = extractRootDomain(tab.url);
       domainInput.value = rootDomain;
       currentTabHint.textContent = `Current tab: ${rootDomain}`;
+      updateAdminLink(rootDomain);
     } else {
       currentTabHint.textContent = 'No HTTP tab detected. Enter a domain manually.';
     }
@@ -154,11 +153,6 @@ async function init() {
 
 // ── URL Utilities ──────────────────────────────────────────────────────────────
 
-/**
- * Extracts scheme + host from any URL string.
- * Prepends https:// if no scheme is present.
- * Throws if the result is not a valid URL.
- */
 function extractRootDomain(rawInput) {
   let normalized = rawInput.trim();
   if (!normalized.startsWith('http://') && !normalized.startsWith('https://')) {
@@ -169,6 +163,20 @@ function extractRootDomain(rawInput) {
     return url.origin;
   } catch (_) {
     throw new Error(`"${rawInput}" is not a valid URL.`);
+  }
+}
+
+function updateAdminLink(rawInput) {
+  if (!rawInput || !rawInput.trim()) {
+    adminLinkRow.classList.add('hidden');
+    return;
+  }
+  try {
+    const root = extractRootDomain(rawInput);
+    adminPluginsLink.href = `${root}/wp-admin/plugins.php`;
+    adminLinkRow.classList.remove('hidden');
+  } catch (_) {
+    adminLinkRow.classList.add('hidden');
   }
 }
 
@@ -195,15 +203,9 @@ function compareVersions(a, b) {
 
 // ── Fetch Logic ────────────────────────────────────────────────────────────────
 
-/**
- * Fetches a plugin changelog URL.
- * Returns { found: true, version } or { found: false }.
- * Throws on network errors or timeout.
- */
 async function checkPluginUrl(url) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-
   try {
     const response = await fetch(url, {
       method: 'GET',
@@ -212,34 +214,21 @@ async function checkPluginUrl(url) {
       credentials: 'omit',
       cache: 'no-store',
     });
-
     clearTimeout(timeoutId);
-
     if (!response.ok) return { found: false };
-
     const text = await response.text();
-
-    // Guard: if the server returned an HTML page (e.g. login redirect), treat as not found
     const trimmed = text.trimStart().toLowerCase();
     if (trimmed.startsWith('<!doctype') || trimmed.startsWith('<html')) {
       return { found: false };
     }
-
     return { found: true, version: parseVersion(text) };
-
   } catch (err) {
     clearTimeout(timeoutId);
-    if (err.name === 'AbortError') {
-      throw new Error(`TIMEOUT`);
-    }
+    if (err.name === 'AbortError') throw new Error('TIMEOUT');
     throw new Error(`NETWORK:${err.message}`);
   }
 }
 
-/**
- * Checks if a URL is reachable (any 200 response). Used for WordPress detection.
- * Unlike checkPluginUrl, HTML responses count as "found". Never throws.
- */
 async function checkUrlExists(url) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -259,10 +248,6 @@ async function checkUrlExists(url) {
   }
 }
 
-/**
- * Tries multiple paths in parallel; returns the first found result, or { found: false }.
- * Never throws — per-path failures are silently caught.
- */
 async function checkMultiplePaths(origin, paths) {
   const results = await Promise.all(
     paths.map(async (p) => {
@@ -273,10 +258,6 @@ async function checkMultiplePaths(origin, paths) {
   return results.find(r => r.found) ?? { found: false };
 }
 
-/**
- * Fetches the latest plugin version from the WordPress.org plugins API.
- * Returns version string or null. Never throws.
- */
 async function fetchLatestVersionFromWpOrg(apiUrl) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), WPORG_TIMEOUT_MS);
@@ -298,10 +279,6 @@ async function fetchLatestVersionFromWpOrg(apiUrl) {
   }
 }
 
-/**
- * Checks all competitor plugins in parallel.
- * Returns matched COMPETITOR_PLUGINS entries (each may have an .active property in admin mode).
- */
 async function checkCompetitorPlugins(origin) {
   const results = await Promise.all(
     COMPETITOR_PLUGINS.map(async (plugin) => {
@@ -312,32 +289,11 @@ async function checkCompetitorPlugins(origin) {
   return results.filter(Boolean);
 }
 
-/**
- * Checks which AM products (beyond WP Mail SMTP / WPForms) are already installed.
- * Returns a Set of offer names. Used to suppress irrelevant competitor cards.
- */
-async function checkAmProducts(origin) {
-  const entries = Object.entries(AM_PRODUCTS);
-  const results = await Promise.all(
-    entries.map(async ([offer, paths]) => {
-      const r = await checkMultiplePaths(origin, paths);
-      return r.found ? offer : null;
-    })
-  );
-  return new Set(results.filter(Boolean));
-}
-
-/**
- * Checks which WPForms add-ons are installed. Only meaningful when WPForms is detected.
- * Returns array of installed addon slugs.
- */
 async function checkWpformsAddons(origin) {
   const results = await Promise.all(
     WPFORMS_ADDONS.map(async (slug) => {
       try {
-        const r = await checkPluginUrl(
-          `${origin}/wp-content/plugins/${slug}/CHANGELOG.md`
-        );
+        const r = await checkPluginUrl(`${origin}/wp-content/plugins/${slug}/CHANGELOG.md`);
         return r.found ? slug : null;
       } catch (_) { return null; }
     })
@@ -345,10 +301,6 @@ async function checkWpformsAddons(origin) {
   return results.filter(Boolean);
 }
 
-/**
- * Returns true if the site appears to be WordPress.
- * Used as a diagnostic signal — does not block plugin checks.
- */
 async function checkIsWordPress(origin) {
   const [a, b] = await Promise.all([
     checkUrlExists(origin + '/wp-login.php'),
@@ -359,13 +311,8 @@ async function checkIsWordPress(origin) {
 
 // ── Admin Mode Helpers ─────────────────────────────────────────────────────────
 
-/**
- * If the current tab is wp-admin/plugins.php, executes a script in the tab
- * to read the installed plugins list from the DOM.
- * Returns array of { slug, name, active, version } or null if not on admin page.
- */
 async function tryGetAdminPlugins(tabId, tabUrl) {
-  if (!tabUrl || !tabUrl.includes('/wp-admin/plugins.php')) return null;
+  if (!tabId || !tabUrl || !tabUrl.includes('/wp-admin/plugins.php')) return null;
   try {
     const [{ result }] = await chrome.scripting.executeScript({
       target: { tabId },
@@ -391,10 +338,6 @@ function getAmPluginFromAdmin(adminPlugins, slug) {
   return p ? { found: true, version: p.version ?? null } : { found: false };
 }
 
-/**
- * Matches admin plugins list against COMPETITOR_PLUGINS by slug.
- * Includes the active status from the admin list.
- */
 function matchCompetitorsFromAdminPlugins(adminPlugins) {
   const adminSlugMap = new Map(adminPlugins.map(p => [p.slug, p]));
   return COMPETITOR_PLUGINS
@@ -402,23 +345,40 @@ function matchCompetitorsFromAdminPlugins(adminPlugins) {
     .map(c => ({ ...c, active: adminSlugMap.get(c.slug).active }));
 }
 
-/**
- * Derives which AM products are already installed from the admin plugins list.
- * Extracts slugs from AM_PRODUCTS paths and matches against admin list.
- */
-function getInstalledAmProductsFromAdmin(adminPlugins) {
-  const adminSlugs = new Set(adminPlugins.map(p => p.slug));
-  const installed = new Set();
-  for (const [offer, paths] of Object.entries(AM_PRODUCTS)) {
-    const slugs = paths.map(p => p.split('/wp-content/plugins/')[1]?.split('/')[0]).filter(Boolean);
-    if (slugs.some(s => adminSlugs.has(s))) installed.add(offer);
-  }
-  return installed;
-}
-
 function getAddonSlugsFromAdmin(adminPlugins) {
   const adminSlugs = new Set(adminPlugins.map(p => p.slug));
   return WPFORMS_ADDONS.filter(slug => adminSlugs.has(slug));
+}
+
+// ── Installed AM Products Set ──────────────────────────────────────────────────
+
+function buildInstalledAmProducts(r) {
+  const set = new Set();
+  if (r.smtpPro.found || r.smtpLite.found)   set.add('WP Mail SMTP');
+  if (r.formsPro.found || r.formsLite.found)  set.add('WPForms');
+  if (r.omStat.found)                          set.add('OptinMonster');
+  if (r.miPro.found || r.miLite.found)         set.add('MonsterInsights');
+  if (r.scPro.found || r.scLite.found)         set.add('Sugar Calendar');
+  if (r.charitable.found)                      set.add('WPCharitable');
+  if (r.aioseo.found)                          set.add('AIOSEO');
+  if (r.wpconsent.found)                       set.add('WPConsent');
+  return set;
+}
+
+// ── License Persistence ────────────────────────────────────────────────────────
+
+async function loadLicenseForDomain(domain) {
+  try {
+    const key = `wpforms_license_${domain}`;
+    const result = await chrome.storage.local.get(key);
+    return result[key] ?? 'unknown';
+  } catch (_) { return 'unknown'; }
+}
+
+async function saveLicenseForDomain(domain, license) {
+  try {
+    await chrome.storage.local.set({ [`wpforms_license_${domain}`]: license });
+  } catch (_) {}
 }
 
 // ── UI Helpers ─────────────────────────────────────────────────────────────────
@@ -435,9 +395,6 @@ function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-/**
- * Creates a clickable tag pill that copies its text to the clipboard on click.
- */
 function makeCopyableTag(text) {
   const el = document.createElement('span');
   el.className = 'csx-tag';
@@ -452,19 +409,30 @@ function makeCopyableTag(text) {
         el.textContent = text;
         el.classList.remove('csx-tag-copied');
       }, 1500);
-    } catch (_) { /* clipboard permission denied */ }
+    } catch (_) {}
   });
   return el;
 }
 
 // ── UI State Management ────────────────────────────────────────────────────────
 
-function showLoading() {
+function setCheckBtnsDisabled(disabled) {
+  publicCheckBtn.disabled = disabled;
+  adminCheckBtn.disabled  = disabled;
+  if (!disabled) {
+    publicCheckBtn.textContent = 'Public Check';
+    adminCheckBtn.textContent  = 'Admin Check';
+  }
+}
+
+function showLoading(label) {
+  loadingStatusText.textContent = label || 'Checking plugins…';
   loadingSection.classList.remove('hidden');
   errorSection.classList.add('hidden');
   resultsSection.classList.add('hidden');
-  checkBtn.disabled = true;
-  checkBtn.textContent = 'Checking…';
+  setCheckBtnsDisabled(true);
+  publicCheckBtn.textContent = 'Checking…';
+  adminCheckBtn.textContent  = 'Checking…';
 }
 
 function showError(message) {
@@ -472,8 +440,7 @@ function showError(message) {
   errorSection.classList.remove('hidden');
   resultsSection.classList.add('hidden');
   errorMessage.textContent = message;
-  checkBtn.disabled = false;
-  checkBtn.textContent = 'Check';
+  setCheckBtnsDisabled(false);
 }
 
 function renderStatus(el, result, latestVersion) {
@@ -481,7 +448,6 @@ function renderStatus(el, result, latestVersion) {
     el.innerHTML = '<span class="not-found">&#10007; Not Found</span>';
     return;
   }
-
   const versionBadge = result.version
     ? `<span class="version">v${result.version}</span>`
     : '<span class="version-unknown">version unknown</span>';
@@ -504,17 +470,27 @@ function renderStatus(el, result, latestVersion) {
     updateLine;
 }
 
+// Simpler status for secondary AM products — just installed/not-found + version, no update check
+function renderStatusSimple(el, result) {
+  if (!result.found) {
+    el.innerHTML = '<span class="not-found">&#10007; Not Found</span>';
+    return;
+  }
+  const versionBadge = result.version
+    ? `<span class="version">v${result.version}</span>`
+    : '';
+  el.innerHTML = `<div class="install-line"><span class="found">&#10003; Installed</span>${versionBadge}</div>`;
+}
+
 function renderAddonSection(installedAddons, wpformsFound) {
   if (!wpformsFound) {
     addonSection.classList.add('hidden');
     return;
   }
   addonSection.classList.remove('hidden');
-  if (!installedAddons.length) {
-    addonList.textContent = 'None detected';
-    return;
-  }
-  addonList.textContent = installedAddons.map(addonSlugToName).join(', ');
+  addonList.textContent = installedAddons.length
+    ? installedAddons.map(addonSlugToName).join(', ')
+    : 'None detected';
 }
 
 function renderSmtpCsxSection(wpformsFound, smtpFound) {
@@ -522,23 +498,44 @@ function renderSmtpCsxSection(wpformsFound, smtpFound) {
     smtpCsxSection.classList.add('hidden');
     return;
   }
-  // Replace tag placeholder with a copyable tag element
   const container = smtpCsxSection.querySelector('.csx-tag-container');
   container.innerHTML = '';
   container.appendChild(makeCopyableTag('csx: trigger – smtp'));
   smtpCsxSection.classList.remove('hidden');
 }
 
-function renderCompetitorSection(competitors, installedAmProducts, isAdminMode) {
-  // Filter out offers where the AM product is already installed
-  const actionable = competitors.filter(c => !installedAmProducts.has(c.offer));
+function updateUpsellHint(license) {
+  const hints = {
+    basic:  '↑ Upsell: Plus, Pro, or Elite',
+    plus:   '↑ Upsell: Pro or Elite',
+    pro:    '↑ Upsell: Elite',
+    elite:  '✓ Top tier',
+  };
+  const hint = hints[license] ?? '';
+  wpformsUpsellHint.textContent = hint;
+  const isActive = hint.startsWith('↑');
+  wpformsUpsellHint.className = 'wpforms-upsell-hint' + (isActive ? ' upsell-active' : '');
+}
 
+async function renderLicenseDropdown(rootDomain, wpformsFound) {
+  if (!wpformsFound) {
+    wpformsLicenseRow.classList.add('hidden');
+    return;
+  }
+  wpformsLicenseRow.classList.remove('hidden');
+  wpformsLicenseSelect.dataset.domain = rootDomain;
+  const saved = await loadLicenseForDomain(rootDomain);
+  wpformsLicenseSelect.value = saved;
+  updateUpsellHint(saved);
+}
+
+function renderCompetitorSection(competitors, installedAmProducts, isAdminMode) {
+  const actionable = competitors.filter(c => !installedAmProducts.has(c.offer));
   if (!actionable.length) {
     competitorSection.classList.add('hidden');
     return;
   }
 
-  // Group by offer, preserving active status per plugin
   const byOffer = {};
   for (const c of actionable) {
     if (!byOffer[c.offer]) byOffer[c.offer] = [];
@@ -550,7 +547,6 @@ function renderCompetitorSection(competitors, installedAmProducts, isAdminMode) 
     const card = document.createElement('div');
     card.className = 'competitor-card';
 
-    // Detected row — names with optional active/inactive badge
     const detectedRow = document.createElement('div');
     detectedRow.className = 'competitor-row';
     const metaLabel = document.createElement('span');
@@ -571,14 +567,12 @@ function renderCompetitorSection(competitors, installedAmProducts, isAdminMode) 
     detectedRow.appendChild(metaLabel);
     detectedRow.appendChild(namesEl);
 
-    // Offer row
     const offerRow = document.createElement('div');
     offerRow.className = 'competitor-row';
     offerRow.innerHTML =
       `<span class="competitor-meta-label">Offer</span>` +
       `<span class="competitor-offer-name">${escapeHtml(offer)}</span>`;
 
-    // Tag row — copyable
     const tagRow = document.createElement('div');
     tagRow.className = 'competitor-tag-row';
     tagRow.appendChild(makeCopyableTag('csx: competitor'));
@@ -592,126 +586,135 @@ function renderCompetitorSection(competitors, installedAmProducts, isAdminMode) 
   competitorSection.classList.remove('hidden');
 }
 
-function showResults(
-  rootDomain, smtpPro, smtpLite, formsPro, formsLite,
-  latestSmtp, latestForms,
-  competitors, installedAmProducts, installedAddons,
-  isAdminMode, isWordPress
-) {
+async function showResults(data) {
+  const {
+    rootDomain, isAdminMode, isWordPress,
+    smtpPro, smtpLite, latestSmtp,
+    formsPro, formsLite, latestForms, installedAddons,
+    omStat, miPro, miLite, scPro, scLite, charitable, aioseo, wpconsent,
+    competitors, installedAmProducts,
+  } = data;
+
   loadingSection.classList.add('hidden');
   errorSection.classList.add('hidden');
   resultsSection.classList.remove('hidden');
-  checkBtn.disabled = false;
-  checkBtn.textContent = 'Check Again';
+  setCheckBtnsDisabled(false);
 
-  // AM plugin status rows
-  renderStatus(proStatus,         smtpPro,   latestSmtp);
-  renderStatus(liteStatus,        smtpLite,  latestSmtp);
+  // WP Mail SMTP
+  renderStatus(proStatus,  smtpPro,  latestSmtp);
+  renderStatus(liteStatus, smtpLite, latestSmtp);
+
+  // WPForms
   renderStatus(wpformsProStatus,  formsPro,  latestForms);
   renderStatus(wpformsLiteStatus, formsLite, latestForms);
 
-  // WPForms add-ons
   const wpformsFound = formsPro.found || formsLite.found;
-  renderAddonSection(installedAddons, wpformsFound);
+  const smtpFound    = smtpPro.found  || smtpLite.found;
 
-  // SMTP CSX opportunity (WPForms found but no SMTP)
-  const smtpFound = smtpPro.found || smtpLite.found;
+  await renderLicenseDropdown(rootDomain, wpformsFound);
+  renderAddonSection(installedAddons, wpformsFound);
   renderSmtpCsxSection(wpformsFound, smtpFound);
 
-  // Competitor CSX opportunities
+  // Other AM products
+  renderStatusSimple(omStatus,          omStat);
+  renderStatusSimple(miProStatus,       miPro);
+  renderStatusSimple(miLiteStatus,      miLite);
+  renderStatusSimple(scProStatus,       scPro);
+  renderStatusSimple(scLiteStatus,      scLite);
+  renderStatusSimple(charitableStatus,  charitable);
+  renderStatusSimple(aioseoStatus,      aioseo);
+  renderStatusSimple(wpconsentStatus,   wpconsent);
+
+  // Competitor CSX cards
   renderCompetitorSection(competitors, installedAmProducts, isAdminMode);
 
-  // Not-WP banner: show only when nothing was found and WP wasn't detected
-  const nothingFound = !smtpFound && !wpformsFound && !competitors.length && !installedAddons.length;
-  notWpBanner.classList.toggle('hidden', !(nothingFound && !isWordPress));
+  // Not-WP banner
+  const anyFound = smtpFound || wpformsFound || omStat.found ||
+    miPro.found || miLite.found || scPro.found || scLite.found ||
+    charitable.found || aioseo.found || wpconsent.found ||
+    competitors.length > 0 || installedAddons.length > 0;
+  notWpBanner.classList.toggle('hidden', !(! anyFound && !isWordPress));
 
   // Mode badge and footer
   modeBadge.textContent = isAdminMode ? 'Admin Mode' : '';
   modeBadge.classList.toggle('hidden', !isAdminMode);
   checkedDomainLabel.textContent = `Checked: ${rootDomain}`;
 
-  // Extension badge: number of distinct AM plugins found (0–2)
+  // Extension badge (WP Mail SMTP + WPForms only)
   const count = (smtpFound ? 1 : 0) + (wpformsFound ? 1 : 0);
   chrome.runtime.sendMessage({ type: 'UPDATE_BADGE', count });
 }
 
-// ── Main Check ─────────────────────────────────────────────────────────────────
+// ── Shared Pre-check ───────────────────────────────────────────────────────────
 
-async function runCheck() {
+async function getValidDomain() {
   const rawInput = domainInput.value.trim();
-
   if (!rawInput) {
     showError('Please enter a domain to check.');
-    return;
+    return null;
   }
-
-  let rootDomain;
   try {
-    rootDomain = extractRootDomain(rawInput);
+    return extractRootDomain(rawInput);
   } catch (err) {
     showError(err.message);
-    return;
+    return null;
   }
+}
 
-  showLoading();
-  loadingStatusText.textContent = 'Checking plugins…';
+// ── Public Check (network scan, no login needed) ───────────────────────────────
+
+async function runPublicCheck() {
+  const rootDomain = await getValidDomain();
+  if (!rootDomain) return;
+
+  showLoading('Checking plugins…');
 
   try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    const tabId  = tab?.id;
-    const tabUrl = tab?.url ?? '';
-
-    // Kick off WP.org latest-version fetches immediately — independent of everything else
+    // Start WP.org version fetches immediately — run in parallel with plugin checks
     const wpOrgPromise = Promise.all([
       fetchLatestVersionFromWpOrg(WPORG_API_SMTP),
       fetchLatestVersionFromWpOrg(WPORG_API_FORMS),
     ]);
 
-    // Try admin mode — reads the plugins list from wp-admin/plugins.php DOM
-    const adminPlugins = await tryGetAdminPlugins(tabId, tabUrl);
-    const isAdminMode  = adminPlugins !== null;
-
-    let smtpPro, smtpLite, formsPro, formsLite;
-    let competitors, installedAmProducts, installedAddons;
-    let isWordPress;
-
-    if (isAdminMode) {
-      // Instant — data comes from DOM, no network requests needed
-      smtpPro     = getAmPluginFromAdmin(adminPlugins, 'wp-mail-smtp-pro');
-      smtpLite    = getAmPluginFromAdmin(adminPlugins, 'wp-mail-smtp');
-      formsPro    = getAmPluginFromAdmin(adminPlugins, 'wpforms');
-      formsLite   = getAmPluginFromAdmin(adminPlugins, 'wpforms-lite');
-      competitors         = matchCompetitorsFromAdminPlugins(adminPlugins);
-      installedAmProducts = getInstalledAmProductsFromAdmin(adminPlugins);
-      installedAddons     = getAddonSlugsFromAdmin(adminPlugins);
-      isWordPress         = true;
-    } else {
-      // Public scan — parallel fetch of all plugin paths
-      [
-        smtpPro, smtpLite, formsPro, formsLite,
-        competitors, installedAmProducts, installedAddons,
-        isWordPress,
-      ] = await Promise.all([
-        checkMultiplePaths(rootDomain, [PRO_PATH]),
-        checkMultiplePaths(rootDomain, [LITE_PATH]),
-        checkMultiplePaths(rootDomain, [WPFORMS_PRO_PATH]),
-        checkMultiplePaths(rootDomain, [WPFORMS_LITE_PATH]),
-        checkCompetitorPlugins(rootDomain),
-        checkAmProducts(rootDomain),
-        checkWpformsAddons(rootDomain),
-        checkIsWordPress(rootDomain),
-      ]);
-    }
+    const [
+      smtpPro, smtpLite, formsPro, formsLite,
+      omStat, miPro, miLite, scPro, scLite,
+      charitable, aioseo, wpconsent,
+      competitors, installedAddons, isWordPress,
+    ] = await Promise.all([
+      checkMultiplePaths(rootDomain, [PRO_PATH]),
+      checkMultiplePaths(rootDomain, [LITE_PATH]),
+      checkMultiplePaths(rootDomain, [WPFORMS_PRO_PATH]),
+      checkMultiplePaths(rootDomain, [WPFORMS_LITE_PATH]),
+      checkMultiplePaths(rootDomain, [OM_PATH]),
+      checkMultiplePaths(rootDomain, [MI_PRO_PATH]),
+      checkMultiplePaths(rootDomain, [MI_LITE_PATH]),
+      checkMultiplePaths(rootDomain, [SC_PRO_PATH]),
+      checkMultiplePaths(rootDomain, [SC_LITE_PATH]),
+      checkMultiplePaths(rootDomain, [CHARITABLE_PATH]),
+      checkMultiplePaths(rootDomain, [AIOSEO_PATH]),
+      checkMultiplePaths(rootDomain, [WPCONSENT_PATH]),
+      checkCompetitorPlugins(rootDomain),
+      checkWpformsAddons(rootDomain),
+      checkIsWordPress(rootDomain),
+    ]);
 
     loadingStatusText.textContent = 'Fetching latest versions…';
     const [latestSmtp, latestForms] = await wpOrgPromise;
 
-    showResults(
-      rootDomain, smtpPro, smtpLite, formsPro, formsLite,
-      latestSmtp, latestForms,
-      competitors, installedAmProducts, installedAddons,
-      isAdminMode, isWordPress
-    );
+    const installedAmProducts = buildInstalledAmProducts({
+      smtpPro, smtpLite, formsPro, formsLite,
+      omStat, miPro, miLite, scPro, scLite,
+      charitable, aioseo, wpconsent,
+    });
+
+    await showResults({
+      rootDomain, isAdminMode: false, isWordPress,
+      smtpPro, smtpLite, latestSmtp,
+      formsPro, formsLite, latestForms, installedAddons,
+      omStat, miPro, miLite, scPro, scLite, charitable, aioseo, wpconsent,
+      competitors, installedAmProducts,
+    });
 
   } catch (err) {
     let message;
@@ -726,12 +729,86 @@ async function runCheck() {
   }
 }
 
+// ── Admin Check (reads wp-admin/plugins.php DOM) ───────────────────────────────
+
+async function runAdminCheck() {
+  const rootDomain = await getValidDomain();
+  if (!rootDomain) return;
+
+  showLoading('Reading plugins page…');
+
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const adminPlugins = await tryGetAdminPlugins(tab?.id, tab?.url ?? '');
+
+    if (!adminPlugins) {
+      showError('Navigate to wp-admin/plugins.php for this site first, then click Admin Check.');
+      return;
+    }
+
+    // Fetch latest versions in parallel while we process DOM data
+    const wpOrgPromise = Promise.all([
+      fetchLatestVersionFromWpOrg(WPORG_API_SMTP),
+      fetchLatestVersionFromWpOrg(WPORG_API_FORMS),
+    ]);
+
+    const smtpPro    = getAmPluginFromAdmin(adminPlugins, 'wp-mail-smtp-pro');
+    const smtpLite   = getAmPluginFromAdmin(adminPlugins, 'wp-mail-smtp');
+    const formsPro   = getAmPluginFromAdmin(adminPlugins, 'wpforms');
+    const formsLite  = getAmPluginFromAdmin(adminPlugins, 'wpforms-lite');
+    const omStat     = getAmPluginFromAdmin(adminPlugins, 'optinmonster');
+    const miPro      = getAmPluginFromAdmin(adminPlugins, 'google-analytics-premium');
+    const miLite     = getAmPluginFromAdmin(adminPlugins, 'google-analytics-for-wordpress');
+    const scPro      = getAmPluginFromAdmin(adminPlugins, 'sugar-calendar');
+    const scLite     = getAmPluginFromAdmin(adminPlugins, 'sugar-calendar-lite');
+    const charitable = getAmPluginFromAdmin(adminPlugins, 'charitable');
+    const aioseo     = getAmPluginFromAdmin(adminPlugins, 'all-in-one-seo-pack');
+    const wpconsent  = getAmPluginFromAdmin(adminPlugins, 'wpconsent');
+
+    const competitors     = matchCompetitorsFromAdminPlugins(adminPlugins);
+    const installedAddons = getAddonSlugsFromAdmin(adminPlugins);
+
+    loadingStatusText.textContent = 'Fetching latest versions…';
+    const [latestSmtp, latestForms] = await wpOrgPromise;
+
+    const installedAmProducts = buildInstalledAmProducts({
+      smtpPro, smtpLite, formsPro, formsLite,
+      omStat, miPro, miLite, scPro, scLite,
+      charitable, aioseo, wpconsent,
+    });
+
+    await showResults({
+      rootDomain, isAdminMode: true, isWordPress: true,
+      smtpPro, smtpLite, latestSmtp,
+      formsPro, formsLite, latestForms, installedAddons,
+      omStat, miPro, miLite, scPro, scLite, charitable, aioseo, wpconsent,
+      competitors, installedAmProducts,
+    });
+
+  } catch (err) {
+    showError(err.message || 'Unexpected error. Please try again.');
+  }
+}
+
 // ── Event Listeners ────────────────────────────────────────────────────────────
 
-checkBtn.addEventListener('click', runCheck);
+publicCheckBtn.addEventListener('click', runPublicCheck);
+adminCheckBtn.addEventListener('click', runAdminCheck);
 
 domainInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') runCheck();
+  if (e.key === 'Enter') runPublicCheck();
+});
+
+domainInput.addEventListener('input', () => {
+  updateAdminLink(domainInput.value);
+});
+
+wpformsLicenseSelect.addEventListener('change', async () => {
+  const domain = wpformsLicenseSelect.dataset.domain;
+  if (domain) {
+    await saveLicenseForDomain(domain, wpformsLicenseSelect.value);
+    updateUpsellHint(wpformsLicenseSelect.value);
+  }
 });
 
 // ── Boot ───────────────────────────────────────────────────────────────────────

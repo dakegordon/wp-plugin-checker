@@ -10,8 +10,9 @@ body {
   font-size: 14px;
   color: #1f2937;
   background: #ffffff;
-  width: 340px;
-  min-height: 160px;
+  width: 100%;
+  min-width: 320px;
+  padding-bottom: 24px;
 }
 
 /* ── Header ── */
@@ -64,13 +65,8 @@ body {
   margin-bottom: 6px;
 }
 
-.input-row {
-  display: flex;
-  gap: 6px;
-}
-
 .input {
-  flex: 1;
+  width: 100%;
   padding: 7px 10px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
@@ -79,7 +75,6 @@ body {
   color: #1f2937;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
-  min-width: 0;
 }
 
 .input:focus {
@@ -87,8 +82,39 @@ body {
   box-shadow: 0 0 0 2px rgba(255, 108, 55, 0.15);
 }
 
-/* ── Button ── */
+/* ── Admin Link ── */
+.admin-link-row {
+  margin-top: 7px;
+}
+
+.admin-link {
+  font-size: 11px;
+  color: #3B82F6;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.admin-link:hover {
+  text-decoration: underline;
+}
+
+/* ── Check Buttons ── */
+.check-buttons-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.check-btn-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
 .btn {
+  width: 100%;
   padding: 7px 14px;
   border: none;
   border-radius: 6px;
@@ -97,7 +123,6 @@ body {
   cursor: pointer;
   transition: background-color 0.15s, opacity 0.15s;
   white-space: nowrap;
-  flex-shrink: 0;
 }
 
 .btn-primary {
@@ -109,16 +134,34 @@ body {
   background: #e85c27;
 }
 
-.btn-primary:disabled {
+.btn-secondary {
+  background: #ffffff;
+  color: #FF6C37;
+  border: 1.5px solid #FF6C37;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #fff7ed;
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.btn-hint {
+  font-size: 10px;
+  color: #9ca3af;
+  text-align: center;
+  line-height: 1.3;
 }
 
 /* ── Hint ── */
 .hint {
   font-size: 11px;
   color: #9ca3af;
-  margin-top: 5px;
+  margin-top: 6px;
   min-height: 16px;
 }
 
@@ -193,6 +236,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.04em;
   color: #fff;
+  flex-shrink: 0;
 }
 
 .badge-pro  { background: #22C55E; }
@@ -266,6 +310,59 @@ body {
 .section-header:first-child {
   border-top: none;
   padding-top: 0;
+}
+
+/* ── WPForms License Dropdown ── */
+.license-row {
+  padding: 8px 0 4px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.license-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+  margin-bottom: 5px;
+}
+
+.license-row-inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.license-select {
+  padding: 4px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+  background: #fff;
+  cursor: pointer;
+  outline: none;
+}
+
+.license-select:focus {
+  border-color: #FF6C37;
+  box-shadow: 0 0 0 2px rgba(255, 108, 55, 0.15);
+}
+
+.wpforms-upsell-hint {
+  font-size: 11px;
+  font-weight: 600;
+  color: #c2410c;
+}
+
+.wpforms-upsell-hint.upsell-active {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  padding: 2px 7px;
+  border-radius: 4px;
 }
 
 /* ── Utility ── */
@@ -393,6 +490,7 @@ body {
   margin-top: 7px;
 }
 
+/* ── CSX Tag (copyable) ── */
 .csx-tag {
   display: inline-block;
   font-size: 11px;

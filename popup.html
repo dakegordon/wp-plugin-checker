@@ -21,24 +21,39 @@
     <!-- Domain Input Section -->
     <section class="domain-section">
       <label for="domain-input" class="label">Domain to check</label>
-      <div class="input-row">
-        <input
-          type="text"
-          id="domain-input"
-          class="input"
-          placeholder="https://example.com"
-          spellcheck="false"
-          autocomplete="off"
-        />
-        <button id="check-btn" class="btn btn-primary">Check</button>
+      <input
+        type="text"
+        id="domain-input"
+        class="input"
+        placeholder="https://example.com"
+        spellcheck="false"
+        autocomplete="off"
+      />
+
+      <!-- Auto-generated link to the site's plugins page -->
+      <div id="admin-link-row" class="admin-link-row hidden">
+        <a id="admin-plugins-link" href="#" target="_blank" class="admin-link">↗ Open wp-admin/plugins.php for this site</a>
       </div>
+
+      <!-- Two check buttons -->
+      <div class="check-buttons-row">
+        <div class="check-btn-col">
+          <button id="public-check-btn" class="btn btn-primary">Public Check</button>
+          <p class="btn-hint">Any page · no login needed</p>
+        </div>
+        <div class="check-btn-col">
+          <button id="admin-check-btn" class="btn btn-secondary">Admin Check</button>
+          <p class="btn-hint">Must be on plugins.php</p>
+        </div>
+      </div>
+
       <p class="hint" id="current-tab-hint"></p>
     </section>
 
     <!-- Loading State -->
     <section id="loading-section" class="status-section hidden">
       <div class="spinner"></div>
-      <p class="status-text" id="loading-status-text">Checking plugins...</p>
+      <p class="status-text" id="loading-status-text">Checking plugins…</p>
     </section>
 
     <!-- Error State -->
@@ -56,7 +71,7 @@
         Doesn't appear to be a WordPress site — results may be inaccurate.
       </div>
 
-      <!-- WP Mail SMTP group -->
+      <!-- ── WP Mail SMTP ── -->
       <p class="section-header">WP Mail SMTP</p>
 
       <div class="result-row">
@@ -77,7 +92,7 @@
         <div class="result-status" id="lite-status"></div>
       </div>
 
-      <!-- WPForms group -->
+      <!-- ── WPForms ── -->
       <p class="section-header">WPForms</p>
 
       <div class="result-row">
@@ -96,6 +111,21 @@
           <span class="plugin-name">WPForms Lite</span>
         </div>
         <div class="result-status" id="wpforms-lite-status"></div>
+      </div>
+
+      <!-- WPForms license dropdown (shown when WPForms is detected) -->
+      <div id="wpforms-license-row" class="license-row hidden">
+        <label class="license-label" for="wpforms-license-select">Customer license</label>
+        <div class="license-row-inner">
+          <select id="wpforms-license-select" class="license-select">
+            <option value="unknown">— Unknown —</option>
+            <option value="basic">Basic</option>
+            <option value="plus">Plus</option>
+            <option value="pro">Pro</option>
+            <option value="elite">Elite</option>
+          </select>
+          <span id="wpforms-upsell-hint" class="wpforms-upsell-hint"></span>
+        </div>
       </div>
 
       <!-- WPForms Addon Section -->
@@ -120,6 +150,78 @@
             <span class="csx-tag-container"></span>
           </div>
         </div>
+      </div>
+
+      <!-- ── OptinMonster ── -->
+      <p class="section-header">OptinMonster</p>
+      <div class="result-row">
+        <div class="result-label">
+          <span class="plugin-name">OptinMonster</span>
+        </div>
+        <div class="result-status" id="om-status"></div>
+      </div>
+
+      <!-- ── MonsterInsights ── -->
+      <p class="section-header">MonsterInsights</p>
+      <div class="result-row">
+        <div class="result-label">
+          <span class="plugin-badge badge-pro">PRO</span>
+          <span class="plugin-name">MonsterInsights</span>
+        </div>
+        <div class="result-status" id="mi-pro-status"></div>
+      </div>
+      <div class="result-divider"></div>
+      <div class="result-row">
+        <div class="result-label">
+          <span class="plugin-badge badge-lite">LITE</span>
+          <span class="plugin-name">MonsterInsights Lite</span>
+        </div>
+        <div class="result-status" id="mi-lite-status"></div>
+      </div>
+
+      <!-- ── Sugar Calendar ── -->
+      <p class="section-header">Sugar Calendar</p>
+      <div class="result-row">
+        <div class="result-label">
+          <span class="plugin-badge badge-pro">PRO</span>
+          <span class="plugin-name">Sugar Calendar</span>
+        </div>
+        <div class="result-status" id="sc-pro-status"></div>
+      </div>
+      <div class="result-divider"></div>
+      <div class="result-row">
+        <div class="result-label">
+          <span class="plugin-badge badge-lite">LITE</span>
+          <span class="plugin-name">Sugar Calendar Lite</span>
+        </div>
+        <div class="result-status" id="sc-lite-status"></div>
+      </div>
+
+      <!-- ── WPCharitable ── -->
+      <p class="section-header">WPCharitable</p>
+      <div class="result-row">
+        <div class="result-label">
+          <span class="plugin-name">Charitable</span>
+        </div>
+        <div class="result-status" id="charitable-status"></div>
+      </div>
+
+      <!-- ── AIOSEO ── -->
+      <p class="section-header">AIOSEO</p>
+      <div class="result-row">
+        <div class="result-label">
+          <span class="plugin-name">All in One SEO</span>
+        </div>
+        <div class="result-status" id="aioseo-status"></div>
+      </div>
+
+      <!-- ── WPConsent ── -->
+      <p class="section-header">WPConsent</p>
+      <div class="result-row">
+        <div class="result-label">
+          <span class="plugin-name">WPConsent</span>
+        </div>
+        <div class="result-status" id="wpconsent-status"></div>
       </div>
 
       <div class="checked-footer">

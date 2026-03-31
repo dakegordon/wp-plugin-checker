@@ -38,7 +38,7 @@
     <!-- Loading State -->
     <section id="loading-section" class="status-section hidden">
       <div class="spinner"></div>
-      <p class="status-text">Checking plugin files...</p>
+      <p class="status-text" id="loading-status-text">Checking plugins...</p>
     </section>
 
     <!-- Error State -->
@@ -50,6 +50,11 @@
 
     <!-- Results Section -->
     <section id="results-section" class="results hidden">
+
+      <!-- Not-WP warning banner -->
+      <div id="not-wp-banner" class="not-wp-banner hidden">
+        Doesn't appear to be a WordPress site — results may be inaccurate.
+      </div>
 
       <!-- WP Mail SMTP group -->
       <p class="section-header">WP Mail SMTP</p>
@@ -91,6 +96,30 @@
           <span class="plugin-name">WPForms Lite</span>
         </div>
         <div class="result-status" id="wpforms-lite-status"></div>
+      </div>
+
+      <!-- WPForms Addon Section -->
+      <div id="addon-section" class="hidden">
+        <p class="addon-section-label">Add-ons detected</p>
+        <p id="addon-list" class="addon-list"></p>
+      </div>
+
+      <!-- SMTP CSX Opportunity (shown when WPForms found but no SMTP) -->
+      <div id="smtp-csx-section" class="hidden">
+        <p class="section-header csx-section-header">CSX Opportunity</p>
+        <div class="competitor-card">
+          <div class="competitor-row">
+            <span class="competitor-meta-label">Detected</span>
+            <span class="competitor-plugin-names">No SMTP plugin</span>
+          </div>
+          <div class="competitor-row">
+            <span class="competitor-meta-label">Offer</span>
+            <span class="competitor-offer-name">WP Mail SMTP</span>
+          </div>
+          <div class="competitor-tag-row">
+            <span class="csx-tag-container"></span>
+          </div>
+        </div>
       </div>
 
       <div class="checked-footer">

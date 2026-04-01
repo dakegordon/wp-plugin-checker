@@ -71,6 +71,20 @@
         Doesn't appear to be a WordPress site — results may be inaccurate.
       </div>
 
+      <!-- ── WPForms License (shown first when WPForms is detected) ── -->
+      <div id="wpforms-license-row" class="license-row hidden">
+        <label class="license-label" for="wpforms-license-select">WPForms customer license</label>
+        <div class="license-row-inner">
+          <select id="wpforms-license-select" class="license-select">
+            <option value="unknown">— Unknown —</option>
+            <option value="basic">Basic</option>
+            <option value="plus">Plus</option>
+            <option value="pro">Pro</option>
+            <option value="elite">Elite</option>
+          </select>
+        </div>
+      </div>
+
       <!-- ── WP Mail SMTP ── -->
       <p class="section-header">WP Mail SMTP</p>
 
@@ -113,43 +127,10 @@
         <div class="result-status" id="wpforms-lite-status"></div>
       </div>
 
-      <!-- WPForms license dropdown (shown when WPForms is detected) -->
-      <div id="wpforms-license-row" class="license-row hidden">
-        <label class="license-label" for="wpforms-license-select">Customer license</label>
-        <div class="license-row-inner">
-          <select id="wpforms-license-select" class="license-select">
-            <option value="unknown">— Unknown —</option>
-            <option value="basic">Basic</option>
-            <option value="plus">Plus</option>
-            <option value="pro">Pro</option>
-            <option value="elite">Elite</option>
-          </select>
-          <span id="wpforms-upsell-hint" class="wpforms-upsell-hint"></span>
-        </div>
-      </div>
-
       <!-- WPForms Addon Section -->
       <div id="addon-section" class="hidden">
         <p class="addon-section-label">Add-ons detected</p>
         <p id="addon-list" class="addon-list"></p>
-      </div>
-
-      <!-- SMTP CSX Opportunity (shown when WPForms found but no SMTP) -->
-      <div id="smtp-csx-section" class="hidden">
-        <p class="section-header csx-section-header">CSX Opportunity</p>
-        <div class="competitor-card">
-          <div class="competitor-row">
-            <span class="competitor-meta-label">Detected</span>
-            <span class="competitor-plugin-names">No SMTP plugin</span>
-          </div>
-          <div class="competitor-row">
-            <span class="competitor-meta-label">Offer</span>
-            <span class="competitor-offer-name">WP Mail SMTP</span>
-          </div>
-          <div class="competitor-tag-row">
-            <span class="csx-tag-container"></span>
-          </div>
-        </div>
       </div>
 
       <!-- ── OptinMonster ── -->
@@ -229,9 +210,9 @@
         <p class="checked-domain" id="checked-domain-label"></p>
       </div>
 
-      <!-- CSX Competitor Opportunities -->
+      <!-- ── CSX Opportunities (all consolidated at bottom) ── -->
       <div id="competitor-section" class="hidden">
-        <p class="section-header csx-section-header">CSX Opportunity</p>
+        <p class="section-header csx-section-header">CSX Opportunities</p>
         <div id="competitor-cards"></div>
       </div>
 

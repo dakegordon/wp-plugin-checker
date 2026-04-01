@@ -10,18 +10,18 @@ const LITE_PATH = '/wp-content/plugins/wp-mail-smtp/changelog.txt';
 const WPFORMS_PRO_PATH  = '/wp-content/plugins/wpforms/CHANGELOG.md';
 const WPFORMS_LITE_PATH = '/wp-content/plugins/wpforms-lite/changelog.txt';
 
-// OptinMonster
+// OptinMonster (single slug)
 const OM_PATH = '/wp-content/plugins/optinmonster/readme.txt';
 
-// MonsterInsights
+// MonsterInsights — lite + pro
 const MI_PRO_PATH  = '/wp-content/plugins/google-analytics-premium/readme.txt';
 const MI_LITE_PATH = '/wp-content/plugins/google-analytics-for-wordpress/readme.txt';
 
-// Sugar Calendar
+// Sugar Calendar — lite + pro
 const SC_PRO_PATH  = '/wp-content/plugins/sugar-calendar/readme.txt';
 const SC_LITE_PATH = '/wp-content/plugins/sugar-calendar-lite/readme.txt';
 
-// WPCharitable, AIOSEO, WPConsent
+// WPCharitable, AIOSEO, WPConsent (single slugs)
 const CHARITABLE_PATH = '/wp-content/plugins/charitable/readme.txt';
 const AIOSEO_PATH     = '/wp-content/plugins/all-in-one-seo-pack/readme.txt';
 const WPCONSENT_PATH  = '/wp-content/plugins/wpconsent/readme.txt';
@@ -34,6 +34,26 @@ const WPORG_TIMEOUT_MS = 5000;
 
 const WPORG_API_SMTP  = 'https://api.wordpress.org/plugins/info/1.2/?action=plugin_information&slug=wp-mail-smtp';
 const WPORG_API_FORMS = 'https://api.wordpress.org/plugins/info/1.2/?action=plugin_information&slug=wpforms-lite';
+
+// Maps each AM offer to the official CSX tag from the support procedures doc.
+// SMTP competitors → smtp trigger tag; forms competitor → generic (no specific tag in doc).
+// Sugar Calendar tag matches the doc's spelling exactly (calender).
+const OFFER_TRIGGER_TAGS = {
+  'WP Mail SMTP':    'csx: trigger – smtp',
+  'WPForms':         'csx: competitor',
+  'OptinMonster':    'csx: trigger – optinmonster',
+  'MonsterInsights': 'csx: trigger – monsterinsights',
+  'Sugar Calendar':  'csx: trigger – sugar-calender',
+  'WPCharitable':    'csx: trigger – wpcharitable',
+  'AIOSEO':          'csx: trigger – aioseo',
+  'WPConsent':       'csx: trigger – wpconsent',
+};
+
+// Payment-related WPForms addon slugs. If none are detected, a Payments CSX card is shown.
+const PAYMENT_ADDONS = [
+  'wpforms-stripe', 'wpforms-paypal-commerce', 'wpforms-square',
+  'wpforms-authorize-net', 'wpforms-coupons',
+];
 
 const WPFORMS_ADDONS = [
   'wpforms-stripe', 'wpforms-paypal-commerce', 'wpforms-square',
@@ -106,18 +126,17 @@ const errorSection         = document.getElementById('error-section');
 const errorMessage         = document.getElementById('error-message');
 const resultsSection       = document.getElementById('results-section');
 const notWpBanner          = document.getElementById('not-wp-banner');
+// WPForms license (top of results)
+const wpformsLicenseRow    = document.getElementById('wpforms-license-row');
+const wpformsLicenseSelect = document.getElementById('wpforms-license-select');
 // WP Mail SMTP
 const proStatus            = document.getElementById('pro-status');
 const liteStatus           = document.getElementById('lite-status');
 // WPForms
 const wpformsProStatus     = document.getElementById('wpforms-pro-status');
 const wpformsLiteStatus    = document.getElementById('wpforms-lite-status');
-const wpformsLicenseRow    = document.getElementById('wpforms-license-row');
-const wpformsLicenseSelect = document.getElementById('wpforms-license-select');
-const wpformsUpsellHint    = document.getElementById('wpforms-upsell-hint');
 const addonSection         = document.getElementById('addon-section');
 const addonList            = document.getElementById('addon-list');
-const smtpCsxSection       = document.getElementById('smtp-csx-section');
 // Other AM products
 const omStatus             = document.getElementById('om-status');
 const miProStatus          = document.getElementById('mi-pro-status');
@@ -127,7 +146,7 @@ const scLiteStatus         = document.getElementById('sc-lite-status');
 const charitableStatus     = document.getElementById('charitable-status');
 const aioseoStatus         = document.getElementById('aioseo-status');
 const wpconsentStatus      = document.getElementById('wpconsent-status');
-// Footer
+// Footer + CSX section
 const checkedDomainLabel   = document.getElementById('checked-domain-label');
 const competitorSection    = document.getElementById('competitor-section');
 const competitorCards      = document.getElementById('competitor-cards');
@@ -351,6 +370,8 @@ function getAddonSlugsFromAdmin(adminPlugins) {
 }
 
 // ── Installed AM Products Set ──────────────────────────────────────────────────
+// Products with lite + pro: WP Mail SMTP, WPForms, MonsterInsights, Sugar Calendar.
+// Either variant found → product is suppressed from CSX competitor cards.
 
 function buildInstalledAmProducts(r) {
   const set = new Set();
@@ -470,7 +491,7 @@ function renderStatus(el, result, latestVersion) {
     updateLine;
 }
 
-// Simpler status for secondary AM products — just installed/not-found + version, no update check
+// Simpler status for secondary AM products — installed/not-found + version, no update check
 function renderStatusSimple(el, result) {
   if (!result.found) {
     el.innerHTML = '<span class="not-found">&#10007; Not Found</span>';
@@ -493,30 +514,6 @@ function renderAddonSection(installedAddons, wpformsFound) {
     : 'None detected';
 }
 
-function renderSmtpCsxSection(wpformsFound, smtpFound) {
-  if (!wpformsFound || smtpFound) {
-    smtpCsxSection.classList.add('hidden');
-    return;
-  }
-  const container = smtpCsxSection.querySelector('.csx-tag-container');
-  container.innerHTML = '';
-  container.appendChild(makeCopyableTag('csx: trigger – smtp'));
-  smtpCsxSection.classList.remove('hidden');
-}
-
-function updateUpsellHint(license) {
-  const hints = {
-    basic:  '↑ Upsell: Plus, Pro, or Elite',
-    plus:   '↑ Upsell: Pro or Elite',
-    pro:    '↑ Upsell: Elite',
-    elite:  '✓ Top tier',
-  };
-  const hint = hints[license] ?? '';
-  wpformsUpsellHint.textContent = hint;
-  const isActive = hint.startsWith('↑');
-  wpformsUpsellHint.className = 'wpforms-upsell-hint' + (isActive ? ' upsell-active' : '');
-}
-
 async function renderLicenseDropdown(rootDomain, wpformsFound) {
   if (!wpformsFound) {
     wpformsLicenseRow.classList.add('hidden');
@@ -526,32 +523,91 @@ async function renderLicenseDropdown(rootDomain, wpformsFound) {
   wpformsLicenseSelect.dataset.domain = rootDomain;
   const saved = await loadLicenseForDomain(rootDomain);
   wpformsLicenseSelect.value = saved;
-  updateUpsellHint(saved);
 }
 
-function renderCompetitorSection(competitors, installedAmProducts, isAdminMode) {
-  const actionable = competitors.filter(c => !installedAmProducts.has(c.offer));
-  if (!actionable.length) {
-    competitorSection.classList.add('hidden');
-    return;
+// ── CSX Opportunities ─────────────────────────────────────────────────────────
+
+/**
+ * Builds one CSX card element.
+ * @param {string} detected — what was detected (or what's missing)
+ * @param {string} offer    — what to offer
+ * @param {string} tag      — the csx tag to copy
+ * @param {string|undefined} activeBadge — optional "Active"/"Inactive" badge text
+ */
+function buildCsxCard(detected, offer, tag, activeBadge) {
+  const card = document.createElement('div');
+  card.className = 'competitor-card';
+
+  // Detected row
+  const detectedRow = document.createElement('div');
+  detectedRow.className = 'competitor-row';
+  const detectedLabel = document.createElement('span');
+  detectedLabel.className = 'competitor-meta-label';
+  detectedLabel.textContent = 'Detected';
+  const detectedValue = document.createElement('span');
+  detectedValue.className = 'competitor-plugin-names';
+  detectedValue.textContent = detected;
+  if (activeBadge !== undefined) {
+    const badge = document.createElement('span');
+    badge.className = `plugin-active-badge ${activeBadge ? 'active' : 'inactive'}`;
+    badge.textContent = activeBadge ? 'Active' : 'Inactive';
+    detectedValue.appendChild(badge);
+  }
+  detectedRow.appendChild(detectedLabel);
+  detectedRow.appendChild(detectedValue);
+
+  // Offer row
+  const offerRow = document.createElement('div');
+  offerRow.className = 'competitor-row';
+  offerRow.innerHTML =
+    `<span class="competitor-meta-label">Offer</span>` +
+    `<span class="competitor-offer-name">${escapeHtml(offer)}</span>`;
+
+  // Tag row — copyable
+  const tagRow = document.createElement('div');
+  tagRow.className = 'competitor-tag-row';
+  tagRow.appendChild(makeCopyableTag(tag));
+
+  card.appendChild(detectedRow);
+  card.appendChild(offerRow);
+  card.appendChild(tagRow);
+  return card;
+}
+
+/**
+ * Renders all CSX opportunity cards at the bottom of results.
+ * Consolidates: SMTP prompt, competitor detections, Payments trigger, License Level trigger.
+ */
+function renderAllCsxOpportunities({ competitors, installedAmProducts, isAdminMode,
+                                      wpformsFound, smtpFound, installedAddons, license }) {
+  competitorCards.innerHTML = '';
+  const fragment = document.createDocumentFragment();
+
+  // 1. SMTP: WPForms found but no SMTP at all
+  if (wpformsFound && !smtpFound) {
+    fragment.appendChild(
+      buildCsxCard('No SMTP plugin', 'WP Mail SMTP', 'csx: trigger – smtp')
+    );
   }
 
+  // 2. Competitor-detected cards — group by offer, one card per offer
+  const actionable = competitors.filter(c => !installedAmProducts.has(c.offer));
   const byOffer = {};
   for (const c of actionable) {
     if (!byOffer[c.offer]) byOffer[c.offer] = [];
-    byOffer[c.offer].push({ name: c.name, active: c.active });
+    byOffer[c.offer].push(c);
   }
-
-  competitorCards.innerHTML = '';
   for (const [offer, entries] of Object.entries(byOffer)) {
+    const tag = OFFER_TRIGGER_TAGS[offer] ?? 'csx: competitor';
+    // Build detected names string; add active/inactive badge in admin mode
     const card = document.createElement('div');
     card.className = 'competitor-card';
 
     const detectedRow = document.createElement('div');
     detectedRow.className = 'competitor-row';
-    const metaLabel = document.createElement('span');
-    metaLabel.className = 'competitor-meta-label';
-    metaLabel.textContent = 'Detected';
+    const detectedLabel = document.createElement('span');
+    detectedLabel.className = 'competitor-meta-label';
+    detectedLabel.textContent = 'Detected';
     const namesEl = document.createElement('span');
     namesEl.className = 'competitor-plugin-names';
     entries.forEach((entry, i) => {
@@ -564,7 +620,7 @@ function renderCompetitorSection(competitors, installedAmProducts, isAdminMode) 
         namesEl.appendChild(badge);
       }
     });
-    detectedRow.appendChild(metaLabel);
+    detectedRow.appendChild(detectedLabel);
     detectedRow.appendChild(namesEl);
 
     const offerRow = document.createElement('div');
@@ -575,16 +631,42 @@ function renderCompetitorSection(competitors, installedAmProducts, isAdminMode) 
 
     const tagRow = document.createElement('div');
     tagRow.className = 'competitor-tag-row';
-    tagRow.appendChild(makeCopyableTag('csx: competitor'));
+    tagRow.appendChild(makeCopyableTag(tag));
 
     card.appendChild(detectedRow);
     card.appendChild(offerRow);
     card.appendChild(tagRow);
-    competitorCards.appendChild(card);
+    fragment.appendChild(card);
   }
 
+  // 3. Payments trigger: WPForms found but no payment addon detected
+  if (wpformsFound) {
+    const hasPaymentAddon = installedAddons.some(s => PAYMENT_ADDONS.includes(s));
+    if (!hasPaymentAddon) {
+      fragment.appendChild(
+        buildCsxCard('No payment addon', 'WPForms Payments', 'csx: trigger – payments')
+      );
+    }
+  }
+
+  // 4. License Level trigger: WPForms found + Basic or Plus license selected
+  if (wpformsFound && ['basic', 'plus'].includes(license)) {
+    const tier = license.charAt(0).toUpperCase() + license.slice(1);
+    fragment.appendChild(
+      buildCsxCard(`WPForms ${tier} license`, 'Higher license tier', 'csx: trigger – license level')
+    );
+  }
+
+  if (!fragment.childNodes.length) {
+    competitorSection.classList.add('hidden');
+    return;
+  }
+
+  competitorCards.appendChild(fragment);
   competitorSection.classList.remove('hidden');
 }
+
+// ── showResults ────────────────────────────────────────────────────────────────
 
 async function showResults(data) {
   const {
@@ -600,49 +682,51 @@ async function showResults(data) {
   resultsSection.classList.remove('hidden');
   setCheckBtnsDisabled(false);
 
-  // WP Mail SMTP
-  renderStatus(proStatus,  smtpPro,  latestSmtp);
-  renderStatus(liteStatus, smtpLite, latestSmtp);
-
-  // WPForms
-  renderStatus(wpformsProStatus,  formsPro,  latestForms);
-  renderStatus(wpformsLiteStatus, formsLite, latestForms);
-
   const wpformsFound = formsPro.found || formsLite.found;
   const smtpFound    = smtpPro.found  || smtpLite.found;
 
+  // 1. License dropdown — top of results
   await renderLicenseDropdown(rootDomain, wpformsFound);
+
+  // 2. AM product status rows (in trigger order)
+  renderStatus(proStatus,  smtpPro,  latestSmtp);
+  renderStatus(liteStatus, smtpLite, latestSmtp);
+  renderStatus(wpformsProStatus,  formsPro,  latestForms);
+  renderStatus(wpformsLiteStatus, formsLite, latestForms);
   renderAddonSection(installedAddons, wpformsFound);
-  renderSmtpCsxSection(wpformsFound, smtpFound);
+  renderStatusSimple(omStatus,         omStat);
+  renderStatusSimple(miProStatus,      miPro);
+  renderStatusSimple(miLiteStatus,     miLite);
+  renderStatusSimple(scProStatus,      scPro);
+  renderStatusSimple(scLiteStatus,     scLite);
+  renderStatusSimple(charitableStatus, charitable);
+  renderStatusSimple(aioseoStatus,     aioseo);
+  renderStatusSimple(wpconsentStatus,  wpconsent);
 
-  // Other AM products
-  renderStatusSimple(omStatus,          omStat);
-  renderStatusSimple(miProStatus,       miPro);
-  renderStatusSimple(miLiteStatus,      miLite);
-  renderStatusSimple(scProStatus,       scPro);
-  renderStatusSimple(scLiteStatus,      scLite);
-  renderStatusSimple(charitableStatus,  charitable);
-  renderStatusSimple(aioseoStatus,      aioseo);
-  renderStatusSimple(wpconsentStatus,   wpconsent);
+  // 3. Footer
+  modeBadge.textContent = isAdminMode ? 'Admin Mode' : '';
+  modeBadge.classList.toggle('hidden', !isAdminMode);
+  checkedDomainLabel.textContent = `Checked: ${rootDomain}`;
 
-  // Competitor CSX cards
-  renderCompetitorSection(competitors, installedAmProducts, isAdminMode);
+  // 4. CSX Opportunities — all consolidated at bottom
+  const license = wpformsLicenseSelect.value;
+  lastCsxContext = { competitors, installedAmProducts, isAdminMode,
+                     wpformsFound, smtpFound, installedAddons };
+  renderAllCsxOpportunities({ ...lastCsxContext, license });
 
-  // Not-WP banner
+  // 5. Not-WP banner
   const anyFound = smtpFound || wpformsFound || omStat.found ||
     miPro.found || miLite.found || scPro.found || scLite.found ||
     charitable.found || aioseo.found || wpconsent.found ||
     competitors.length > 0 || installedAddons.length > 0;
   notWpBanner.classList.toggle('hidden', !(! anyFound && !isWordPress));
 
-  // Mode badge and footer
-  modeBadge.textContent = isAdminMode ? 'Admin Mode' : '';
-  modeBadge.classList.toggle('hidden', !isAdminMode);
-  checkedDomainLabel.textContent = `Checked: ${rootDomain}`;
-
-  // Extension badge (WP Mail SMTP + WPForms only)
+  // 6. Extension badge (WP Mail SMTP + WPForms)
   const count = (smtpFound ? 1 : 0) + (wpformsFound ? 1 : 0);
   chrome.runtime.sendMessage({ type: 'UPDATE_BADGE', count });
+
+  // Store domain on select for change handler
+  wpformsLicenseSelect.dataset.domain = rootDomain;
 }
 
 // ── Shared Pre-check ───────────────────────────────────────────────────────────
@@ -661,7 +745,7 @@ async function getValidDomain() {
   }
 }
 
-// ── Public Check (network scan, no login needed) ───────────────────────────────
+// ── Public Check ───────────────────────────────────────────────────────────────
 
 async function runPublicCheck() {
   const rootDomain = await getValidDomain();
@@ -670,7 +754,6 @@ async function runPublicCheck() {
   showLoading('Checking plugins…');
 
   try {
-    // Start WP.org version fetches immediately — run in parallel with plugin checks
     const wpOrgPromise = Promise.all([
       fetchLatestVersionFromWpOrg(WPORG_API_SMTP),
       fetchLatestVersionFromWpOrg(WPORG_API_FORMS),
@@ -729,7 +812,7 @@ async function runPublicCheck() {
   }
 }
 
-// ── Admin Check (reads wp-admin/plugins.php DOM) ───────────────────────────────
+// ── Admin Check ────────────────────────────────────────────────────────────────
 
 async function runAdminCheck() {
   const rootDomain = await getValidDomain();
@@ -746,7 +829,6 @@ async function runAdminCheck() {
       return;
     }
 
-    // Fetch latest versions in parallel while we process DOM data
     const wpOrgPromise = Promise.all([
       fetchLatestVersionFromWpOrg(WPORG_API_SMTP),
       fetchLatestVersionFromWpOrg(WPORG_API_FORMS),
@@ -805,12 +887,17 @@ domainInput.addEventListener('input', () => {
 
 wpformsLicenseSelect.addEventListener('change', async () => {
   const domain = wpformsLicenseSelect.dataset.domain;
-  if (domain) {
-    await saveLicenseForDomain(domain, wpformsLicenseSelect.value);
-    updateUpsellHint(wpformsLicenseSelect.value);
+  if (!domain) return;
+  await saveLicenseForDomain(domain, wpformsLicenseSelect.value);
+  // Re-render CSX section immediately so license-level card appears/disappears
+  if (lastCsxContext) {
+    renderAllCsxOpportunities({ ...lastCsxContext, license: wpformsLicenseSelect.value });
   }
 });
 
 // ── Boot ───────────────────────────────────────────────────────────────────────
+
+// Holds the last CSX-relevant data so the license dropdown change can re-render cards
+let lastCsxContext = null;
 
 init();

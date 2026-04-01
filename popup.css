@@ -332,7 +332,6 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
 }
 
 .license-select {
@@ -352,18 +351,6 @@ body {
   box-shadow: 0 0 0 2px rgba(255, 108, 55, 0.15);
 }
 
-.wpforms-upsell-hint {
-  font-size: 11px;
-  font-weight: 600;
-  color: #c2410c;
-}
-
-.wpforms-upsell-hint.upsell-active {
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
-  padding: 2px 7px;
-  border-radius: 4px;
-}
 
 /* ── Utility ── */
 .hidden {

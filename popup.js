@@ -49,6 +49,31 @@ const OFFER_TRIGGER_TAGS = {
   'WPConsent':       'csx: trigger – wpconsent',
 };
 
+// Proactive questions for each CSX trigger — prompts the agent to assess the customer's
+// site and situation, not just what they asked about.
+const CSX_TRIGGER_QUESTIONS = {
+  'csx: trigger – smtp':
+    'Does this site send form notification emails? (No SMTP = likely silent failures they may not know about)',
+  'csx: trigger – license level':
+    'Does their use case suggest features only on Pro/Elite — conditional logic, payments, geolocation, user journey tracking?',
+  'csx: trigger – payments':
+    'Does their site sell products, run registrations, or serve a cause where collecting money would make sense?',
+  'csx: trigger – optinmonster':
+    'Does this site have a business goal — leads, sales, email list — where capturing more visitors would directly help?',
+  'csx: trigger – monsterinsights':
+    'Does this site use forms for leads or sales without any visibility into which forms are actually converting?',
+  'csx: trigger – sugar-calender':
+    'Does this site involve events, appointments, bookings, or anything time-based where a calendar would improve the experience?',
+  'csx: trigger – wpcharitable':
+    'Does this site serve a cause, nonprofit, school, church, or community that could benefit from accepting donations?',
+  'csx: trigger – aioseo':
+    'Does this site have content — blog, services, products — that depends on or would benefit from organic search traffic?',
+  'csx: trigger – wpconsent':
+    'Does this site collect personal data through forms and serve visitors in the EU, California, or other regulated regions?',
+  'csx: competitor':
+    'Does their current tool fall short of what their site actually needs — and would the AM product solve that gap?',
+};
+
 // Payment-related WPForms addon slugs. If none are detected, a Payments CSX card is shown.
 const PAYMENT_ADDONS = [
   'wpforms-stripe', 'wpforms-paypal-commerce', 'wpforms-square',
@@ -568,9 +593,49 @@ function buildCsxCard(detected, offer, tag, activeBadge) {
   tagRow.className = 'competitor-tag-row';
   tagRow.appendChild(makeCopyableTag(tag));
 
+  // Decision row — proactive question + Yes/No buttons
+  const question = CSX_TRIGGER_QUESTIONS[tag] ?? 'Does this trigger apply to this customer?';
+  const decisionRow = document.createElement('div');
+  decisionRow.className = 'csx-decision-row';
+
+  const qText = document.createElement('p');
+  qText.className = 'csx-decision-question';
+  qText.textContent = question;
+
+  const btnWrap = document.createElement('div');
+  btnWrap.className = 'csx-decision-buttons';
+
+  const yesBtn = document.createElement('button');
+  yesBtn.className = 'csx-decision-btn csx-yes-btn';
+  yesBtn.textContent = 'Yes — Go for it';
+
+  const noBtn = document.createElement('button');
+  noBtn.className = 'csx-decision-btn csx-no-btn';
+  noBtn.textContent = 'No — Skip';
+
+  yesBtn.addEventListener('click', () => {
+    card.classList.add('csx-confirmed');
+    card.classList.remove('csx-skipped');
+    yesBtn.classList.add('active');
+    noBtn.classList.remove('active');
+  });
+
+  noBtn.addEventListener('click', () => {
+    card.classList.add('csx-skipped');
+    card.classList.remove('csx-confirmed');
+    noBtn.classList.add('active');
+    yesBtn.classList.remove('active');
+  });
+
+  btnWrap.appendChild(yesBtn);
+  btnWrap.appendChild(noBtn);
+  decisionRow.appendChild(qText);
+  decisionRow.appendChild(btnWrap);
+
   card.appendChild(detectedRow);
   card.appendChild(offerRow);
   card.appendChild(tagRow);
+  card.appendChild(decisionRow);
   return card;
 }
 

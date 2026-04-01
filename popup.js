@@ -664,43 +664,28 @@ function renderAllCsxOpportunities({ competitors, installedAmProducts, isAdminMo
   }
   for (const [offer, entries] of Object.entries(byOffer)) {
     const tag = OFFER_TRIGGER_TAGS[offer] ?? 'csx: competitor';
-    // Build detected names string; add active/inactive badge in admin mode
-    const card = document.createElement('div');
-    card.className = 'competitor-card';
+    // Use the first entry's active state for the badge (admin mode only)
+    const activeBadge = (isAdminMode && entries[0].active !== undefined) ? entries[0].active : undefined;
+    // Build detected name string (comma-separated if multiple)
+    const detectedNames = entries.map(e => e.name).join(', ');
+    const card = buildCsxCard(detectedNames, offer, tag, activeBadge);
 
-    const detectedRow = document.createElement('div');
-    detectedRow.className = 'competitor-row';
-    const detectedLabel = document.createElement('span');
-    detectedLabel.className = 'competitor-meta-label';
-    detectedLabel.textContent = 'Detected';
-    const namesEl = document.createElement('span');
-    namesEl.className = 'competitor-plugin-names';
-    entries.forEach((entry, i) => {
-      if (i > 0) namesEl.append(', ');
-      namesEl.append(entry.name);
-      if (isAdminMode && entry.active !== undefined) {
-        const badge = document.createElement('span');
-        badge.className = `plugin-active-badge ${entry.active ? 'active' : 'inactive'}`;
-        badge.textContent = entry.active ? 'Active' : 'Inactive';
-        namesEl.appendChild(badge);
-      }
-    });
-    detectedRow.appendChild(detectedLabel);
-    detectedRow.appendChild(namesEl);
+    // In admin mode with multiple entries, replace the single badge with per-entry badges
+    if (isAdminMode && entries.length > 1) {
+      const namesEl = card.querySelector('.competitor-plugin-names');
+      namesEl.textContent = '';
+      entries.forEach((entry, i) => {
+        if (i > 0) namesEl.append(', ');
+        namesEl.append(entry.name);
+        if (entry.active !== undefined) {
+          const badge = document.createElement('span');
+          badge.className = `plugin-active-badge ${entry.active ? 'active' : 'inactive'}`;
+          badge.textContent = entry.active ? 'Active' : 'Inactive';
+          namesEl.appendChild(badge);
+        }
+      });
+    }
 
-    const offerRow = document.createElement('div');
-    offerRow.className = 'competitor-row';
-    offerRow.innerHTML =
-      `<span class="competitor-meta-label">Offer</span>` +
-      `<span class="competitor-offer-name">${escapeHtml(offer)}</span>`;
-
-    const tagRow = document.createElement('div');
-    tagRow.className = 'competitor-tag-row';
-    tagRow.appendChild(makeCopyableTag(tag));
-
-    card.appendChild(detectedRow);
-    card.appendChild(offerRow);
-    card.appendChild(tagRow);
     fragment.appendChild(card);
   }
 

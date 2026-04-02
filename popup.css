@@ -528,6 +528,21 @@ body {
   padding-bottom: 4px;
 }
 
+/* ── CSX Why Row (competitor cards only) ── */
+.csx-reason-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+  align-items: flex-start;
+}
+
+.csx-reason-text {
+  font-size: 11px;
+  color: #374151;
+  line-height: 1.4;
+  flex: 1;
+}
+
 /* ── CSX Decision Row ── */
 .csx-decision-row {
   margin-top: 9px;

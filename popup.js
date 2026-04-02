@@ -74,6 +74,19 @@ const CSX_TRIGGER_QUESTIONS = {
     'Does their current tool fall short of what their site actually needs — and would the AM product solve that gap?',
 };
 
+// Value descriptions for each AM offer — drawn from the procedures doc's "What to Offer"
+// column. Shown as a "Why" row on competitor-detected cards to frame the suggestion naturally.
+const CSX_OFFER_DESCRIPTIONS = {
+  'WP Mail SMTP':    'Ensures form notification emails reach the inbox — most hosts block PHP mail by default.',
+  'WPForms':         'More powerful form builder with conditional logic, built-in payments, and a native migration path.',
+  'OptinMonster':    'Targeted popups and exit-intent that drive visitors to existing WPForms forms — no rebuilding needed.',
+  'MonsterInsights': 'GA4 integration with a native WPForms addon that tracks form impressions, submissions, and conversions.',
+  'Sugar Calendar':  'Event management with a native WPForms integration — form submissions automatically populate calendar events.',
+  'WPCharitable':    'Dedicated donation plugin — no transaction fees, donor management, campaign progress goals, recurring donations.',
+  'AIOSEO':          'Helps form landing pages and site content rank in search, driving more organic visitors to existing forms.',
+  'WPConsent':       "Site-wide consent management that works alongside WPForms' built-in GDPR fields.",
+};
+
 // Payment-related WPForms addon slugs. If none are detected, a Payments CSX card is shown.
 const PAYMENT_ADDONS = [
   'wpforms-stripe', 'wpforms-paypal-commerce', 'wpforms-square',
@@ -101,6 +114,7 @@ const COMPETITOR_PLUGINS = [
   { name: 'WP SMTP',      slug: 'wp-smtp',       paths: ['/wp-content/plugins/wp-smtp/readme.txt'],       offer: 'WP Mail SMTP' },
   { name: 'SMTP Mailer',  slug: 'smtp-mailer',   paths: ['/wp-content/plugins/smtp-mailer/readme.txt'],   offer: 'WP Mail SMTP' },
   { name: 'Mailgun',      slug: 'mailgun',       paths: ['/wp-content/plugins/mailgun/readme.txt'],       offer: 'WP Mail SMTP' },
+  { name: 'WP Mail Bank', slug: 'wp-mail-bank',  paths: ['/wp-content/plugins/wp-mail-bank/readme.txt'],  offer: 'WP Mail SMTP' },
   // Forms → offer WPForms
   { name: 'Gravity Forms',    slug: 'gravityforms',   paths: ['/wp-content/plugins/gravityforms/changelog.txt', '/wp-content/plugins/gravityforms/readme.txt'], offer: 'WPForms' },
   { name: 'Ninja Forms',      slug: 'ninja-forms',    paths: ['/wp-content/plugins/ninja-forms/readme.txt'],    offer: 'WPForms' },
@@ -108,21 +122,25 @@ const COMPETITOR_PLUGINS = [
   { name: 'Fluent Forms',     slug: 'fluentform',     paths: ['/wp-content/plugins/fluentform/readme.txt'],     offer: 'WPForms' },
   { name: 'Formidable Forms', slug: 'formidable',     paths: ['/wp-content/plugins/formidable/readme.txt'],     offer: 'WPForms' },
   { name: 'WS Form',          slug: 'ws-form-lite',   paths: ['/wp-content/plugins/ws-form-lite/readme.txt'],   offer: 'WPForms' },
+  { name: 'Forminator',       slug: 'forminator',     paths: ['/wp-content/plugins/forminator/readme.txt'],     offer: 'WPForms' },
+  { name: 'Everest Forms',    slug: 'everest-forms',  paths: ['/wp-content/plugins/everest-forms/readme.txt'],  offer: 'WPForms' },
   // Popup / lead capture → offer OptinMonster
   { name: 'Popup Maker', slug: 'popup-maker',     paths: ['/wp-content/plugins/popup-maker/readme.txt'],     offer: 'OptinMonster' },
   { name: 'Hustle',      slug: 'wordpress-popup', paths: ['/wp-content/plugins/wordpress-popup/readme.txt'], offer: 'OptinMonster' },
   { name: 'Sumo',        slug: 'sumome',          paths: ['/wp-content/plugins/sumome/readme.txt'],          offer: 'OptinMonster' },
   { name: 'ConvertPro',  slug: 'convertpro',      paths: ['/wp-content/plugins/convertpro/readme.txt'],      offer: 'OptinMonster' },
   // Analytics → offer MonsterInsights
-  { name: 'Analytify',          slug: 'analytify',       paths: ['/wp-content/plugins/analytify/readme.txt'],       offer: 'MonsterInsights' },
-  { name: 'Site Kit by Google', slug: 'google-site-kit', paths: ['/wp-content/plugins/google-site-kit/readme.txt'], offer: 'MonsterInsights' },
-  { name: 'WP Statistics',      slug: 'wp-statistics',   paths: ['/wp-content/plugins/wp-statistics/readme.txt'],   offer: 'MonsterInsights' },
-  { name: 'Matomo',             slug: 'wp-piwik',        paths: ['/wp-content/plugins/wp-piwik/readme.txt'],        offer: 'MonsterInsights' },
+  { name: 'Analytify',              slug: 'analytify',             paths: ['/wp-content/plugins/analytify/readme.txt'],             offer: 'MonsterInsights' },
+  { name: 'Site Kit by Google',     slug: 'google-site-kit',       paths: ['/wp-content/plugins/google-site-kit/readme.txt'],       offer: 'MonsterInsights' },
+  { name: 'WP Statistics',          slug: 'wp-statistics',         paths: ['/wp-content/plugins/wp-statistics/readme.txt'],         offer: 'MonsterInsights' },
+  { name: 'Matomo',                 slug: 'wp-piwik',              paths: ['/wp-content/plugins/wp-piwik/readme.txt'],              offer: 'MonsterInsights' },
+  { name: 'Independent Analytics',  slug: 'independent-analytics', paths: ['/wp-content/plugins/independent-analytics/readme.txt'], offer: 'MonsterInsights' },
   // Events / calendar → offer Sugar Calendar
   { name: 'The Events Calendar',    slug: 'the-events-calendar',         paths: ['/wp-content/plugins/the-events-calendar/readme.txt', '/wp-content/plugins/tribe-events-calendar-pro/readme.txt'], offer: 'Sugar Calendar' },
   { name: 'Modern Events Calendar', slug: 'modern-events-calendar-lite', paths: ['/wp-content/plugins/modern-events-calendar-lite/readme.txt'], offer: 'Sugar Calendar' },
   { name: 'Amelia',                 slug: 'ameliabooking',               paths: ['/wp-content/plugins/ameliabooking/readme.txt'],               offer: 'Sugar Calendar' },
   { name: 'Bookly',                 slug: 'bookly-responsive-appointment-booking-tool', paths: ['/wp-content/plugins/bookly-responsive-appointment-booking-tool/readme.txt'], offer: 'Sugar Calendar' },
+  { name: 'Event Organiser',        slug: 'event-organiser',             paths: ['/wp-content/plugins/event-organiser/readme.txt'],             offer: 'Sugar Calendar' },
   // Donations → offer WPCharitable
   { name: 'GiveWP', slug: 'give', paths: ['/wp-content/plugins/give/readme.txt'], offer: 'WPCharitable' },
   // SEO → offer AIOSEO
@@ -130,11 +148,13 @@ const COMPETITOR_PLUGINS = [
   { name: 'RankMath',          slug: 'seo-by-rank-math', paths: ['/wp-content/plugins/seo-by-rank-math/readme.txt'],  offer: 'AIOSEO' },
   { name: 'SEOPress',          slug: 'wp-seopress',      paths: ['/wp-content/plugins/wp-seopress/readme.txt'],       offer: 'AIOSEO' },
   { name: 'The SEO Framework', slug: 'autodescription',  paths: ['/wp-content/plugins/autodescription/readme.txt'],   offer: 'AIOSEO' },
+  { name: 'Squirrly SEO',      slug: 'squirrly-seo',     paths: ['/wp-content/plugins/squirrly-seo/readme.txt'],      offer: 'AIOSEO' },
   // Cookie consent → offer WPConsent
   { name: 'CookieYes',           slug: 'cookie-law-info',        paths: ['/wp-content/plugins/cookie-law-info/readme.txt'],        offer: 'WPConsent' },
   { name: 'Complianz',           slug: 'complianz-gdpr',         paths: ['/wp-content/plugins/complianz-gdpr/readme.txt'],         offer: 'WPConsent' },
   { name: 'Cookie Notice',       slug: 'cookie-notice',          paths: ['/wp-content/plugins/cookie-notice/readme.txt'],          offer: 'WPConsent' },
   { name: 'GDPR Cookie Consent', slug: 'gdpr-cookie-compliance', paths: ['/wp-content/plugins/gdpr-cookie-compliance/readme.txt'], offer: 'WPConsent' },
+  { name: 'Real Cookie Banner',  slug: 'real-cookie-banner',     paths: ['/wp-content/plugins/real-cookie-banner/readme.txt'],     offer: 'WPConsent' },
 ];
 
 // ── DOM References ─────────────────────────────────────────────────────────────
@@ -559,7 +579,7 @@ async function renderLicenseDropdown(rootDomain, wpformsFound) {
  * @param {string} tag      — the csx tag to copy
  * @param {string|undefined} activeBadge — optional "Active"/"Inactive" badge text
  */
-function buildCsxCard(detected, offer, tag, activeBadge) {
+function buildCsxCard(detected, offer, tag, activeBadge, reason, detectedLabelText = 'Detected') {
   const card = document.createElement('div');
   card.className = 'competitor-card';
 
@@ -568,7 +588,7 @@ function buildCsxCard(detected, offer, tag, activeBadge) {
   detectedRow.className = 'competitor-row';
   const detectedLabel = document.createElement('span');
   detectedLabel.className = 'competitor-meta-label';
-  detectedLabel.textContent = 'Detected';
+  detectedLabel.textContent = detectedLabelText;
   const detectedValue = document.createElement('span');
   detectedValue.className = 'competitor-plugin-names';
   detectedValue.textContent = detected;
@@ -634,6 +654,16 @@ function buildCsxCard(detected, offer, tag, activeBadge) {
 
   card.appendChild(detectedRow);
   card.appendChild(offerRow);
+
+  if (reason) {
+    const reasonRow = document.createElement('div');
+    reasonRow.className = 'csx-reason-row';
+    reasonRow.innerHTML =
+      `<span class="competitor-meta-label">Why</span>` +
+      `<span class="csx-reason-text">${escapeHtml(reason)}</span>`;
+    card.appendChild(reasonRow);
+  }
+
   card.appendChild(tagRow);
   card.appendChild(decisionRow);
   return card;
@@ -668,7 +698,8 @@ function renderAllCsxOpportunities({ competitors, installedAmProducts, isAdminMo
     const activeBadge = (isAdminMode && entries[0].active !== undefined) ? entries[0].active : undefined;
     // Build detected name string (comma-separated if multiple)
     const detectedNames = entries.map(e => e.name).join(', ');
-    const card = buildCsxCard(detectedNames, offer, tag, activeBadge);
+    const reason = CSX_OFFER_DESCRIPTIONS[offer];
+    const card = buildCsxCard(detectedNames, offer, tag, activeBadge, reason, 'Competitor Found');
 
     // In admin mode with multiple entries, replace the single badge with per-entry badges
     if (isAdminMode && entries.length > 1) {

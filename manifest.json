@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CSX WP Plugin Checker",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "Detect WPForms, WP Mail SMTP, and competitor plugins for CSX opportunities.",
   "permissions": [
     "activeTab",

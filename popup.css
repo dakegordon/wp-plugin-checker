@@ -596,6 +596,22 @@ body {
   opacity: 0.45;
 }
 
+/* ── Check Blocked (public mode: 403/timeout) ── */
+.check-blocked {
+  color: #92400e;
+  font-size: 11px;
+  font-style: italic;
+}
+
+/* ── CSX Reactive Note ── */
+.csx-reactive-note {
+  font-size: 10px;
+  color: #9ca3af;
+  font-style: italic;
+  margin-top: 8px;
+  padding: 0 2px;
+}
+
 /* ── Not-WP Warning Banner ── */
 .not-wp-banner {
   font-size: 11px;

@@ -43,7 +43,7 @@ const OFFER_TRIGGER_TAGS = {
   'WPForms':         'csx: competitor',
   'OptinMonster':    'csx: trigger – optinmonster',
   'MonsterInsights': 'csx: trigger – monsterinsights',
-  'Sugar Calendar':  'csx: trigger – sugar-calender',
+  'Sugar Calendar':  'csx: trigger – sugar-calendar',
   'WPCharitable':    'csx: trigger – wpcharitable',
   'AIOSEO':          'csx: trigger – aioseo',
   'WPConsent':       'csx: trigger – wpconsent',
@@ -55,14 +55,14 @@ const CSX_TRIGGER_QUESTIONS = {
   'csx: trigger – smtp':
     'Does this site send form notification emails? (No SMTP = likely silent failures they may not know about)',
   'csx: trigger – license level':
-    'Does their use case suggest features only on Pro/Elite — conditional logic, payments, geolocation, user journey tracking?',
+    'Does their use case require payments, Zapier, PDF forms, or advanced integrations (Pro), or CRM connections like HubSpot/Salesforce (Elite)?',
   'csx: trigger – payments':
     'Does their site sell products, run registrations, or serve a cause where collecting money would make sense?',
   'csx: trigger – optinmonster':
     'Does this site have a business goal — leads, sales, email list — where capturing more visitors would directly help?',
   'csx: trigger – monsterinsights':
     'Does this site use forms for leads or sales without any visibility into which forms are actually converting?',
-  'csx: trigger – sugar-calender':
+  'csx: trigger – sugar-calendar':
     'Does this site involve events, appointments, bookings, or anything time-based where a calendar would improve the experience?',
   'csx: trigger – wpcharitable':
     'Does this site serve a cause, nonprofit, school, church, or community that could benefit from accepting donations?',
@@ -77,14 +77,14 @@ const CSX_TRIGGER_QUESTIONS = {
 // Value descriptions for each AM offer — drawn from the procedures doc's "What to Offer"
 // column. Shown as a "Why" row on competitor-detected cards to frame the suggestion naturally.
 const CSX_OFFER_DESCRIPTIONS = {
-  'WP Mail SMTP':    'Ensures form notification emails reach the inbox — most hosts block PHP mail by default.',
-  'WPForms':         'More powerful form builder with conditional logic, built-in payments, and a native migration path.',
-  'OptinMonster':    'Targeted popups and exit-intent that drive visitors to existing WPForms forms — no rebuilding needed.',
-  'MonsterInsights': 'GA4 integration with a native WPForms addon that tracks form impressions, submissions, and conversions.',
-  'Sugar Calendar':  'Event management with a native WPForms integration — form submissions automatically populate calendar events.',
-  'WPCharitable':    'Dedicated donation plugin — no transaction fees, donor management, campaign progress goals, recurring donations.',
-  'AIOSEO':          'Helps form landing pages and site content rank in search, driving more organic visitors to existing forms.',
-  'WPConsent':       "Site-wide consent management that works alongside WPForms' built-in GDPR fields.",
+  'WP Mail SMTP':    'Reliable email delivery with logging, failure alerts, and backup connections — most hosts silently drop PHP mail.',
+  'WPForms':         'Built-in payment processing, anti-spam, entry management, and 300+ templates — no add-on fees for core features.',
+  'OptinMonster':    'Exit-intent popups and lead capture that drive visitors to existing WPForms forms — no rebuilding needed.',
+  'MonsterInsights': 'GA4 integration with a native WPForms addon tracking form impressions, submissions, and conversion rates.',
+  'Sugar Calendar':  'Event management with RSVP, ticketing, and a native WPForms integration — form submissions populate calendar events.',
+  'WPCharitable':    'Dedicated donation plugin — no transaction fees, recurring donations, donor management, and campaign goal tracking.',
+  'AIOSEO':          'Helps form landing pages rank in search via schema markup, smart sitemaps, and AI-assisted content optimization.',
+  'WPConsent':       "Site-wide GDPR/CCPA consent management that works alongside WPForms' built-in GDPR fields.",
 };
 
 // Payment-related WPForms addon slugs. If none are detected, a Payments CSX card is shown.
@@ -93,6 +93,9 @@ const PAYMENT_ADDONS = [
   'wpforms-authorize-net', 'wpforms-coupons',
 ];
 
+// WPForms addon slugs used to detect installed addons in public/admin mode.
+// Last audited: v1.8.0 (April 2026) — verify against https://wpforms.com/addons/
+// To update: compare this list against the WPForms addons page and add any new slugs.
 const WPFORMS_ADDONS = [
   'wpforms-stripe', 'wpforms-paypal-commerce', 'wpforms-square',
   'wpforms-authorize-net', 'wpforms-calculations', 'wpforms-coupons',
@@ -195,6 +198,7 @@ const wpconsentStatus      = document.getElementById('wpconsent-status');
 const checkedDomainLabel   = document.getElementById('checked-domain-label');
 const competitorSection    = document.getElementById('competitor-section');
 const competitorCards      = document.getElementById('competitor-cards');
+const csxReactiveNote      = document.getElementById('csx-reactive-note');
 const modeBadge            = document.getElementById('mode-badge');
 
 // ── Initialization ─────────────────────────────────────────────────────────────
@@ -279,7 +283,10 @@ async function checkPluginUrl(url) {
       cache: 'no-store',
     });
     clearTimeout(timeoutId);
-    if (!response.ok) return { found: false };
+    if (!response.ok) {
+      if ([401, 403, 429].includes(response.status)) return { found: false, blocked: true };
+      return { found: false };
+    }
     const text = await response.text();
     const trimmed = text.trimStart().toLowerCase();
     if (trimmed.startsWith('<!doctype') || trimmed.startsWith('<html')) {
@@ -316,10 +323,17 @@ async function checkMultiplePaths(origin, paths) {
   const results = await Promise.all(
     paths.map(async (p) => {
       try { return await checkPluginUrl(origin + p); }
-      catch (_) { return { found: false }; }
+      catch (_) {
+        // Timeout or network error — can't confirm absence
+        return { found: false, blocked: true };
+      }
     })
   );
-  return results.find(r => r.found) ?? { found: false };
+  const found = results.find(r => r.found);
+  if (found) return found;
+  // If any path was blocked (vs clean 404), surface that
+  if (results.some(r => r.blocked)) return { found: false, blocked: true };
+  return { found: false };
 }
 
 async function fetchLatestVersionFromWpOrg(apiUrl) {
@@ -511,6 +525,10 @@ function showError(message) {
 
 function renderStatus(el, result, latestVersion) {
   if (!result.found) {
+    if (result.blocked) {
+      el.innerHTML = '<span class="check-blocked">? Check blocked — may be installed</span>';
+      return;
+    }
     el.innerHTML = '<span class="not-found">&#10007; Not Found</span>';
     return;
   }
@@ -539,6 +557,10 @@ function renderStatus(el, result, latestVersion) {
 // Simpler status for secondary AM products — installed/not-found + version, no update check
 function renderStatusSimple(el, result) {
   if (!result.found) {
+    if (result.blocked) {
+      el.innerHTML = '<span class="check-blocked">? Check blocked — may be installed</span>';
+      return;
+    }
     el.innerHTML = '<span class="not-found">&#10007; Not Found</span>';
     return;
   }
@@ -734,17 +756,19 @@ function renderAllCsxOpportunities({ competitors, installedAmProducts, isAdminMo
   if (wpformsFound && ['basic', 'plus'].includes(license)) {
     const tier = license.charAt(0).toUpperCase() + license.slice(1);
     fragment.appendChild(
-      buildCsxCard(`WPForms ${tier} license`, 'Higher license tier', 'csx: trigger – license level')
+      buildCsxCard(`WPForms ${tier} license`, 'WPForms Pro or Elite', 'csx: trigger – license level')
     );
   }
 
   if (!fragment.childNodes.length) {
     competitorSection.classList.add('hidden');
+    csxReactiveNote.classList.add('hidden');
     return;
   }
 
   competitorCards.appendChild(fragment);
   competitorSection.classList.remove('hidden');
+  csxReactiveNote.classList.remove('hidden');
 }
 
 // ── showResults ────────────────────────────────────────────────────────────────
